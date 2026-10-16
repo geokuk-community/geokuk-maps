@@ -24,6 +24,9 @@ on:
         type: choice
         options: [none, draft, release, finalize]
         default: none
+      from_run:
+        description: "Publish the artifacts of this earlier run (run id) without building; use with publish=draft or release"
+        default: ""
   pull_request:
     branches: [main]
     paths:
@@ -59,7 +62,7 @@ jobs:
 
   build:
     needs: plan
-    if: ${{ inputs.publish != 'finalize' }}
+    if: ${{ inputs.publish != 'finalize' && inputs.from_run == '' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     strategy:
@@ -119,10 +122,11 @@ jobs:
 
   publish:
     needs: build
-    if: ${{ !cancelled() && needs.build.result != 'skipped' && github.event_name == 'workflow_dispatch' && inputs.publish != 'none' && (inputs.publish == 'draft' || github.ref == 'refs/heads/main') }}
+    if: ${{ !cancelled() && (needs.build.result != 'skipped' || inputs.from_run != '') && github.event_name == 'workflow_dispatch' && contains(fromJSON('["draft", "release"]'), inputs.publish) && (inputs.publish == 'draft' || github.ref == 'refs/heads/main') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     permissions:
+      actions: read
       contents: write
     concurrency:
       group: layers-publish
@@ -133,6 +137,9 @@ jobs:
         with:
           pattern: region-*
           path: upload
+          run-id: ${{ inputs.from_run || github.run_id }}
+          repository: ${{ github.repository }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

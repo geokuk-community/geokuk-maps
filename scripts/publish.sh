@@ -52,7 +52,7 @@ for f in "$DIR"/*/*.map "$DIR"/*/*.dem.zip "$DIR"/*/*.poly "$DIR"/LICENSES.txt "
     old=$(asset_id "$name" || true)
     [ -z "$old" ] || api -X DELETE "repos/$GITHUB_REPOSITORY/releases/assets/$old"
     curl -fsS --retry 3 --retry-all-errors -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/octet-stream" \
-      --data-binary "@$f" "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$ID/assets?name=$name" > /dev/null || true
+      -T "$f" "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$ID/assets?name=$name" > /dev/null || true
     got=$(api "repos/$GITHUB_REPOSITORY/releases/$ID/assets" --paginate --jq ".[]|select(.name==\"$name\" and .state==\"uploaded\")|.size" | head -1)
     [ "$got" = "$size" ] && break
     [ "$attempt" -lt 4 ] || { echo "Upload of $name failed" >&2; exit 1; }
