@@ -43,11 +43,17 @@ for frag in "$DIR"/*/layers.json; do
   fi
   cur="$DIR/layers.json"
 done
+LIMIT=$((2 * 1024 * 1024 * 1024))
+python3 "$R/scripts/omit-large.py" "$DIR/layers.json" "$LIMIT"
 cat "$R/licenses/OSM.txt" > "$DIR/LICENSES.txt"; printf '\n\n' >> "$DIR/LICENSES.txt"; cat "$R/licenses/COPERNICUS.txt" >> "$DIR/LICENSES.txt"
 for f in "$DIR"/*/*.map "$DIR"/*/*.dem.zip "$DIR"/*/*.poly "$DIR"/LICENSES.txt "$DIR"/layers.json; do
   [ -f "$f" ] || continue
   name=$(basename "$f")
   size=$(stat -c %s "$f")
+  if [ "$size" -ge "$LIMIT" ]; then
+    echo "::warning::$name is 2 GiB or larger and is not uploaded"
+    continue
+  fi
   for attempt in 1 2 3 4; do
     old=$(asset_id "$name" || true)
     [ -z "$old" ] || api -X DELETE "repos/$GITHUB_REPOSITORY/releases/assets/$old"
