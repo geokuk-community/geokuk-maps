@@ -10,10 +10,26 @@ mkdir -p "$OUT" "$WORK"
 export OUT
 pbf="$WORK/source.osm.pbf"
 "$D/measure.sh" download-pbf curl -fL --retry 5 --retry-delay 10 -o "$pbf" "https://download.geofabrik.de/${GEOFABRIK:-$REGION}-latest.osm.pbf"
+url="https://download.geofabrik.de/${GEOFABRIK:-$REGION}-latest.osm.pbf"
 for attempt in 1 2 3; do
-  curl -fsSL --retry 5 "https://download.geofabrik.de/${GEOFABRIK:-$REGION}-latest.osm.pbf.md5" | awk -v f="$pbf" '{print $1"  "f}' | md5sum -c - && break
-  [ "$attempt" -lt 3 ] || exit 1
-  "$D/measure.sh" download-pbf curl -fL --retry 5 --retry-delay 10 -o "$pbf" "https://download.geofabrik.de/${GEOFABRIK:-$REGION}-latest.osm.pbf"
+  expected=""
+  for try in 1 2 3 4 5 6; do
+    expected=$(curl -fsSL "$url.md5" | awk '{print $1}') && [ -n "$expected" ] && break
+    expected=""
+    sleep $((try * 20))
+  done
+  if [ -z "$expected" ]; then
+    echo "::warning::Checksum of $url is not available; checking that the file can be read completely"
+    osmium fileinfo -e "$pbf" > /dev/null && break
+    [ "$attempt" -lt 3 ] || exit 1
+    sleep 60
+    "$D/measure.sh" download-pbf curl -fL --retry 5 --retry-delay 10 -o "$pbf" "$url"
+    continue
+  fi
+  [ "$(md5sum "$pbf" | awk '{print $1}')" = "$expected" ] && break
+  [ "$attempt" -lt 3 ] || { echo "Checksum mismatch for $url" >&2; exit 1; }
+  sleep 60
+  "$D/measure.sh" download-pbf curl -fL --retry 5 --retry-delay 10 -o "$pbf" "$url"
 done
 stamp=$(osmium fileinfo -g header.option.osmosis_replication_timestamp "$pbf" || true)
 stamp=${stamp:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}
