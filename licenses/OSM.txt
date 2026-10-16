@@ -1,0 +1,4 @@
+Data: OpenStreetMap, modified (derived) database
+License: Open Database License (ODbL) 1.0
+Attribution: © OpenStreetMap contributors
+https://www.openstreetmap.org/copyright

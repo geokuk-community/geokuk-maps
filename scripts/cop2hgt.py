@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+"""Copernicus GLO-30 (AWS Open Data) -> HGT 1" (3601x3601, big-endian int16) for an area.
+Usage: cop2hgt.py south,west,north,east output_dir work_dir
+Requires numpy and GDAL (gdalbuildvrt, gdalwarp)."""
+import email.utils, math, os, subprocess, sys, time, urllib.error, urllib.request
+from concurrent.futures import ThreadPoolExecutor
+import numpy as np
+
+URL = 'https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_{n}_00_{e}_00_DEM/Copernicus_DSM_COG_10_{n}_00_{e}_00_DEM.tif'
+
+
+def tile_name(lat, lon):
+    return '%s%02d' % ('N' if lat >= 0 else 'S', abs(lat)), '%s%03d' % ('E' if lon >= 0 else 'W', abs(lon))
+
+
+def download(args):
+    lat, lon, folder = args
+    n, e = tile_name(lat, lon)
+    target = os.path.join(folder, n + e + '.tif')
+    if os.path.exists(target):
+        return target
+    for attempt in range(5):
+        try:
+            with urllib.request.urlopen(URL.format(n=n, e=e), timeout=120) as r, open(target + '.part', 'wb') as f:
+                while True:
+                    block = r.read(1 << 20)
+                    if not block:
+                        break
+                    f.write(block)
+            os.replace(target + '.part', target)
+            modified = r.headers.get('Last-Modified')
+            if modified:
+                with open(target + '.date', 'w') as f:
+                    f.write(email.utils.parsedate_to_datetime(modified).strftime('%Y-%m-%d'))
+            return target
+        except urllib.error.HTTPError as ex:
+            if ex.code in (403, 404):
+                return None
+            time.sleep(2 * (attempt + 1))
+        except OSError:
+            time.sleep(2 * (attempt + 1))
+    raise RuntimeError('download of %s%s failed' % (n, e))
+
+
+def main():
+    south, west, north, east = (float(x) for x in sys.argv[1].split(','))
+    output, work = sys.argv[2], sys.argv[3]
+    os.makedirs(output, exist_ok=True)
+    source = os.path.join(work, 'cop')
+    os.makedirs(source, exist_ok=True)
+    lat0, lat1 = math.floor(south), math.ceil(north) - 1
+    lon0, lon1 = math.floor(west), math.ceil(east) - 1
+    targets = [(a, o) for a in range(lat0, lat1 + 1) for o in range(lon0, lon1 + 1)]
+    candidates = [(a, o, source) for a in range(lat0 - 1, lat1 + 2) for o in range(lon0 - 1, lon1 + 2)]
+    with ThreadPoolExecutor(8) as ex:
+        tiffs = [t for t in ex.map(download, candidates) if t]
+    print('Copernicus tiles', len(tiffs), 'of', len(candidates), flush=True)
+    dates = []
+    for t in tiffs:
+        if os.path.exists(t + '.date'):
+            with open(t + '.date') as f:
+                dates.append(f.read().strip())
+    if dates:
+        with open(os.path.join(work, 'dem-date.txt'), 'w') as f:
+            f.write(max(dates))
+    vrt = os.path.join(work, 'cop.vrt')
+    listing = os.path.join(work, 'cop.txt')
+    with open(listing, 'w') as f:
+        f.write('\n'.join(tiffs))
+    subprocess.run(['gdalbuildvrt', '-q', '-input_file_list', listing, vrt], check=True)
+    half = 0.5 / 3600
+    written = 0
+    for a, o in targets:
+        n, e = tile_name(a, o)
+        raw = os.path.join(work, 'tile.raw')
+        subprocess.run(['gdalwarp', '-q', '-overwrite', '-te', str(o - half), str(a - half), str(o + 1 + half), str(a + 1 + half),
+                        '-ts', '3601', '3601', '-r', 'bilinear', '-ot', 'Float32', '-of', 'ENVI', vrt, raw], check=True)
+        v = np.fromfile(raw, dtype='<f4').reshape(3601, 3601)
+        v = np.nan_to_num(v, nan=0.0)  # missing tiles are sea (height 0, as in SRTM)
+        if not (v > 0).any():
+            continue
+        np.rint(v).astype('>i2').tofile(os.path.join(output, n + e + '.hgt'))
+        written += 1
+        for p in (raw, raw + '.hdr', raw + '.aux.xml'):
+            if os.path.exists(p):
+                os.remove(p)
+    print('HGT tiles', written, flush=True)
+
+
+if __name__ == '__main__':
+    main()
