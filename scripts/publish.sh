@@ -3,6 +3,11 @@
 # Env: GH_TOKEN, GITHUB_REPOSITORY, MODE (draft|release), DIR (one sub-folder per region with its files and layers.json), TAG (optional).
 set -euo pipefail
 : "${GH_TOKEN:?}" "${GITHUB_REPOSITORY:?}" "${MODE:?}" "${DIR:?}"
+# download-artifact puts a single artifact straight into DIR; keep one folder per region
+if [ -f "$DIR/layers.json" ]; then
+  mkdir -p "$DIR/single"
+  find "$DIR" -maxdepth 1 -type f -exec mv {} "$DIR/single/" \;
+fi
 ls "$DIR"/*/layers.json > /dev/null 2>&1 || { echo "No built region to publish" >&2; exit 1; }
 R=$(cd "$(dirname "$0")/.." && pwd)
 TAG=${TAG:-layers-$(date -u +%Y-%m)}
