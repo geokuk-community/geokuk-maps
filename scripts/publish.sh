@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Uploads the built files into the release layers-YYYY-MM and merges layers.json.
-# Env: GH_TOKEN, GITHUB_REPOSITORY, MODE (draft|release), REGION, DIR (files to upload: *.map, *.dem.zip, *.poly, layers.json), TAG (optional).
+# Env: GH_TOKEN, GITHUB_REPOSITORY, MODE (draft|release), DIR (one sub-folder per region with its files and layers.json), TAG (optional).
 set -euo pipefail
 : "${GH_TOKEN:?}" "${GITHUB_REPOSITORY:?}" "${MODE:?}" "${DIR:?}"
 R=$(cd "$(dirname "$0")/.." && pwd)
@@ -22,12 +22,19 @@ if ! download_catalog "$ID"; then
   latest=$(api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .id 2>/dev/null || true)
   [ -n "$latest" ] && download_catalog "$latest" || true
 fi
-if [ -s "$DIR/existing/layers.json" ]; then
-  python3 "$R/scripts/merge-catalog.py" "$DIR/existing/layers.json" "$DIR/layers.json" "$DIR/layers.merged.json"
-  mv "$DIR/layers.merged.json" "$DIR/layers.json"
-fi
+cur="$DIR/existing/layers.json"
+for frag in "$DIR"/*/layers.json; do
+  [ -f "$frag" ] && [ "$frag" != "$DIR/existing/layers.json" ] || continue
+  if [ -s "$cur" ]; then
+    python3 "$R/scripts/merge-catalog.py" "$cur" "$frag" "$DIR/merged.json"
+    mv "$DIR/merged.json" "$DIR/layers.json"
+  else
+    cp "$frag" "$DIR/layers.json"
+  fi
+  cur="$DIR/layers.json"
+done
 cat "$R/licenses/OSM.txt" > "$DIR/LICENSES.txt"; printf '\n\n' >> "$DIR/LICENSES.txt"; cat "$R/licenses/COPERNICUS.txt" >> "$DIR/LICENSES.txt"
-for f in "$DIR"/*.map "$DIR"/*.dem.zip "$DIR"/*.poly "$DIR"/LICENSES.txt "$DIR"/layers.json; do
+for f in "$DIR"/*/*.map "$DIR"/*/*.dem.zip "$DIR"/*/*.poly "$DIR"/LICENSES.txt "$DIR"/layers.json; do
   [ -f "$f" ] || continue
   name=$(basename "$f")
   old=$(asset_id "$name" || true)
