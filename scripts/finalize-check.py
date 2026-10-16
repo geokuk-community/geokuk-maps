@@ -70,6 +70,10 @@ def main():
                         problems.append('%s: asset %s has %s, catalog says sha256:%s' % (layer['id'], name, digest, expected))
         for name in sorted(set(assets) - referenced):
             print('::warning::asset %s is not referenced by layers.json' % name)
+        by_type = {}
+        for layer in catalog.get('layers', []):
+            by_type[layer['type']] = by_type.get(layer['type'], 0) + 1
+        print('layers by type: ' + ', '.join('%s %d' % kv for kv in sorted(by_type.items())))
         print('layers: %d, files in this release: %d, assets: %d' % (len(catalog.get('layers', [])), files, len(assets)))
         if problems:
             sys.exit('\n'.join(problems[:50]) + '\n%d problem(s); the release was not published' % len(problems))
