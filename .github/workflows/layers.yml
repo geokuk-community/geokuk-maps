@@ -20,9 +20,9 @@ on:
         options: [ram, hd]
         default: ram
       publish:
-        description: "none = artifacts only, draft = upload to a draft release, release = publish the release (main only)"
+        description: "none = artifacts only, draft = upload to a draft release, release = build, upload and publish (main only), finalize = verify the draft release and publish it without building (main only)"
         type: choice
-        options: [none, draft, release]
+        options: [none, draft, release, finalize]
         default: none
   pull_request:
     branches: [main]
@@ -59,6 +59,7 @@ jobs:
 
   build:
     needs: plan
+    if: ${{ inputs.publish != 'finalize' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     strategy:
@@ -138,3 +139,19 @@ jobs:
           MODE: ${{ inputs.publish }}
           DIR: ${{ github.workspace }}/upload
         run: scripts/publish.sh
+
+  finalize:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish == 'finalize' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    concurrency:
+      group: layers-publish
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Verify and publish the draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/finalize.sh
