@@ -12,7 +12,8 @@ export GEOFABRIK
 [[ "$REGION" =~ ^[a-z0-9-]+(/[a-z0-9-]+)*$ ]] || { echo "Invalid REGION: $REGION" >&2; exit 2; }
 export BASE=${REGION//\//_}
 mkdir -p "$OUT" "$WORK/$BASE"
-curl -fsSL --retry 5 -o "$OUT/$BASE.poly" "https://download.geofabrik.de/${GEOFABRIK}.poly"
+curl -fsSL --retry 5 -o "$OUT/$BASE.poly" "https://download.geofabrik.de/${GEOFABRIK}.poly" \
+  || { echo "Geofabrik path ${GEOFABRIK} not found (https://download.geofabrik.de/${GEOFABRIK}.poly)" >&2; exit 1; }
 export BBOX=$(python3 "$D/region-info.py" "$OUT/$BASE.poly")
 last=${REGION##*/}
 NAME=$(python3 -c 'import sys; print(sys.argv[1].replace("-"," ").title())' "$last")
