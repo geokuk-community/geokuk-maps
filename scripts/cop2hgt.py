@@ -13,9 +13,25 @@ def tile_name(lat, lon):
     return '%s%02d' % ('N' if lat >= 0 else 'S', abs(lat)), '%s%03d' % ('E' if lon >= 0 else 'W', abs(lon))
 
 
+LIST = 'https://copernicus-dem-30m.s3.amazonaws.com/tileList.txt'
+AVAILABLE = set()
+
+
+def load_tile_list():
+    for attempt in range(5):
+        try:
+            with urllib.request.urlopen(LIST, timeout=120) as r:
+                return {line.strip() for line in r.read().decode().splitlines() if line.strip()}
+        except OSError:
+            time.sleep(2 * (attempt + 1))
+    raise RuntimeError('tile list not available')
+
+
 def download(args):
     lat, lon, folder = args
     n, e = tile_name(lat, lon)
+    if 'Copernicus_DSM_COG_10_%s_00_%s_00_DEM' % (n, e) not in AVAILABLE:
+        return None
     target = os.path.join(folder, n + e + '.tif')
     if os.path.exists(target):
         return target
@@ -34,8 +50,6 @@ def download(args):
                     f.write(email.utils.parsedate_to_datetime(modified).strftime('%Y-%m-%d'))
             return target
         except urllib.error.HTTPError as ex:
-            if ex.code in (403, 404):
-                return None
             time.sleep(2 * (attempt + 1))
         except OSError:
             time.sleep(2 * (attempt + 1))
@@ -45,6 +59,7 @@ def download(args):
 def main():
     south, west, north, east = (float(x) for x in sys.argv[1].split(','))
     output, work = sys.argv[2], sys.argv[3]
+    AVAILABLE.update(load_tile_list())
     os.makedirs(output, exist_ok=True)
     source = os.path.join(work, 'cop')
     os.makedirs(source, exist_ok=True)

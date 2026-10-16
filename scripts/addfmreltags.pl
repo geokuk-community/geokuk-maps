@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # read the given .pbf/.osm file and add fmrel* tags for ways in relations (type=route, route=*)
-# Modified: isValidHikingSymbol compares the value literally (not as a regular expression); a symbol outside the list is replaced by none for the other route types.
+# Modified 2026-10-15: isValidHikingSymbol compares the value literally (not as a regular expression); a symbol outside the list is replaced by none for the other route types.
 #
 # Parameters:
 # <1> - imported file

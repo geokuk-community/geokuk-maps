@@ -12,6 +12,10 @@ if [ -z "$ID" ]; then
     -f body="Offline map layers for GeoKuk (routes, contours, elevation data). See README.md and layers.json." --jq .id)
   echo "Created draft release $TAG ($ID)"
 fi
+if [ "$MODE" = draft ] && [ "$(api "repos/$GITHUB_REPOSITORY/releases/$ID" --jq .draft)" != true ]; then
+  echo "Release $TAG is already published; refusing to change it in draft mode" >&2
+  exit 1
+fi
 mkdir -p "$DIR/existing"
 asset_id() { api "repos/$GITHUB_REPOSITORY/releases/$ID/assets" --paginate --jq ".[]|select(.name==\"$1\")|.id" | head -1; }
 download_catalog() { # $1 release id
@@ -37,10 +41,16 @@ cat "$R/licenses/OSM.txt" > "$DIR/LICENSES.txt"; printf '\n\n' >> "$DIR/LICENSES
 for f in "$DIR"/*/*.map "$DIR"/*/*.dem.zip "$DIR"/*/*.poly "$DIR"/LICENSES.txt "$DIR"/layers.json; do
   [ -f "$f" ] || continue
   name=$(basename "$f")
-  old=$(asset_id "$name" || true)
-  [ -z "$old" ] || api -X DELETE "repos/$GITHUB_REPOSITORY/releases/assets/$old"
-  curl -fsS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/octet-stream" \
-    --data-binary "@$f" "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$ID/assets?name=$name" > /dev/null
+  size=$(stat -c %s "$f")
+  for attempt in 1 2 3 4; do
+    old=$(asset_id "$name" || true)
+    [ -z "$old" ] || api -X DELETE "repos/$GITHUB_REPOSITORY/releases/assets/$old"
+    curl -fsS --retry 3 --retry-all-errors -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/octet-stream" \
+      --data-binary "@$f" "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$ID/assets?name=$name" > /dev/null || true
+    got=$(api "repos/$GITHUB_REPOSITORY/releases/$ID/assets" --paginate --jq ".[]|select(.name==\"$name\" and .state==\"uploaded\")|.size" | head -1)
+    [ "$got" = "$size" ] && break
+    [ "$attempt" -lt 4 ] || { echo "Upload of $name failed" >&2; exit 1; }
+  done
   echo "uploaded $name"
 done
 if [ "$MODE" = release ]; then
