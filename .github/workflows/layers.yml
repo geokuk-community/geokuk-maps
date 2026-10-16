@@ -52,7 +52,7 @@ jobs:
           import json, os, re
           regions = [r for r in re.split(r'[\s,]+', os.environ['REGIONS']) if r]
           for r in regions:
-              if not re.fullmatch(r'[a-z0-9-]+(/[a-z0-9-]+)*', r):
+              if not re.fullmatch(r'[a-z0-9-]+(/[a-z0-9-]+)*(=[a-z0-9-]+(/[a-z0-9-]+)*)?', r):
                   raise SystemExit('Invalid region: ' + r)
           print('matrix=' + json.dumps({'region': sorted(set(regions))}))
           PY
@@ -101,7 +101,7 @@ jobs:
           } | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Artifact name
         id: art
-        run: echo "name=region-${REGION//\//_}" >> "$GITHUB_OUTPUT"
+        run: KEY=${REGION%%=*}; echo "name=region-${KEY//\//_}" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ steps.art.outputs.name }}

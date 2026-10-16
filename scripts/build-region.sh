@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
 # Builds the selected layers of one region and its catalog fragment.
-# Env: REGION (Geofabrik path = mapsforge key), TYPES (all|routes|dem|contours), OUT, WORK; optional PARALLEL, WRITER_TYPE, JAVA_OPTS.
+# Env: REGION = mapsforge key, or key=geofabrik/path when the Geofabrik path differs, TYPES (all|routes|dem|contours), OUT, WORK; optional PARALLEL, WRITER_TYPE, JAVA_OPTS.
 set -euo pipefail
 : "${REGION:?}" "${OUT:?}" "${WORK:?}"
 D=$(cd "$(dirname "$0")" && pwd)
 TYPES=${TYPES:-all}
+GEOFABRIK=${REGION#*=}
+REGION=${REGION%%=*}
+export GEOFABRIK
+[[ "$GEOFABRIK" =~ ^[a-z0-9-]+(/[a-z0-9-]+)*$ ]] || { echo "Invalid Geofabrik path: $GEOFABRIK" >&2; exit 2; }
 [[ "$REGION" =~ ^[a-z0-9-]+(/[a-z0-9-]+)*$ ]] || { echo "Invalid REGION: $REGION" >&2; exit 2; }
 export BASE=${REGION//\//_}
 mkdir -p "$OUT" "$WORK/$BASE"
-curl -fsSL --retry 5 -o "$OUT/$BASE.poly" "https://download.geofabrik.de/${REGION}.poly"
+curl -fsSL --retry 5 -o "$OUT/$BASE.poly" "https://download.geofabrik.de/${GEOFABRIK}.poly"
 export BBOX=$(python3 "$D/region-info.py" "$OUT/$BASE.poly")
 last=${REGION##*/}
 NAME=$(python3 -c 'import sys; print(sys.argv[1].replace("-"," ").title())' "$last")
