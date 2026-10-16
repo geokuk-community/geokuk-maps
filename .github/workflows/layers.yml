@@ -20,10 +20,13 @@ on:
         options: [ram, hd]
         default: ram
       publish:
-        description: "none = artifacts only, draft = upload to a draft release, release = publish the release (main only)"
+        description: "none = artifacts only, draft = upload to a draft release, release = build, upload and publish (main only), finalize = verify the draft release and publish it without building (main only), check = the same verification without publishing"
         type: choice
-        options: [none, draft, release]
+        options: [none, draft, release, finalize, check]
         default: none
+      from_run:
+        description: "Publish the artifacts of this earlier run (run id) without building; use with publish=draft or release"
+        default: ""
   pull_request:
     branches: [main]
     paths:
@@ -59,6 +62,7 @@ jobs:
 
   build:
     needs: plan
+    if: ${{ !contains(fromJSON('["finalize", "check"]'), inputs.publish) && inputs.from_run == '' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     strategy:
@@ -118,9 +122,41 @@ jobs:
 
   publish:
     needs: build
-    if: ${{ !cancelled() && needs.build.result != 'skipped' && github.event_name == 'workflow_dispatch' && inputs.publish != 'none' && (inputs.publish == 'draft' || github.ref == 'refs/heads/main') }}
+    if: ${{ !cancelled() && (needs.build.result != 'skipped' || inputs.from_run != '') && github.event_name == 'workflow_dispatch' && contains(fromJSON('["draft", "release"]'), inputs.publish) && (inputs.publish == 'draft' || github.ref == 'refs/heads/main') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 360
+    permissions:
+      actions: read
+      contents: write
+    concurrency:
+      group: layers-publish
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check the source run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FROM_RUN: ${{ inputs.from_run }}
+          MODE: ${{ inputs.publish }}
+        run: scripts/check-run.sh
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: region-*
+          path: upload
+          run-id: ${{ inputs.from_run || github.run_id }}
+          repository: ${{ github.repository }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MODE: ${{ inputs.publish }}
+          DIR: ${{ github.workspace }}/upload
+        run: scripts/publish.sh
+
+  finalize:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish == 'finalize' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     permissions:
       contents: write
     concurrency:
@@ -128,13 +164,21 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          pattern: region-*
-          path: upload
-      - name: Release
+      - name: Verify and publish the draft release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MODE: ${{ inputs.publish }}
-          DIR: ${{ github.workspace }}/upload
-        run: scripts/publish.sh
+        run: scripts/finalize.sh
+
+  check:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish == 'check' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Verify the draft release without publishing it
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: "1"
+        run: scripts/finalize.sh
