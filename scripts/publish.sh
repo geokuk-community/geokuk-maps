@@ -11,6 +11,7 @@ fi
 ls "$DIR"/*/layers.json > /dev/null 2>&1 || { echo "No built region to publish" >&2; exit 1; }
 R=$(cd "$(dirname "$0")/.." && pwd)
 TAG=${TAG:-layers-$(date -u +%Y-%m)}
+[[ "$TAG" =~ ^layers-[0-9]{4}-[0-9]{2}[a-z0-9-]*$ ]] || { echo "Invalid TAG: $TAG" >&2; exit 2; }
 api() { gh api "$@"; }
 ID=$(api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate --jq ".[]|select(.tag_name==\"$TAG\")|.id" | head -1)
 if [ -z "$ID" ]; then
@@ -46,7 +47,7 @@ done
 LIMIT=$((2 * 1024 * 1024 * 1024))
 python3 "$R/scripts/omit-large.py" "$DIR/layers.json" "$LIMIT"
 cat "$R/licenses/OSM.txt" > "$DIR/LICENSES.txt"; printf '\n\n' >> "$DIR/LICENSES.txt"; cat "$R/licenses/COPERNICUS.txt" >> "$DIR/LICENSES.txt"
-for f in "$DIR"/*/*.map "$DIR"/*/*.dem.zip "$DIR"/*/*.poly "$DIR"/LICENSES.txt "$DIR"/layers.json; do
+for f in "$DIR"/*/*.map "$DIR"/*/*.dem*.zip "$DIR"/*/*.poly "$DIR"/LICENSES.txt "$DIR"/layers.json; do
   [ -f "$f" ] || continue
   name=$(basename "$f")
   size=$(stat -c %s "$f")

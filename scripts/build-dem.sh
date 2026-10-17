@@ -8,7 +8,7 @@ source "$D/check-inputs.sh"
 mkdir -p "$OUT" "$WORK"
 export OUT
 "$D/measure.sh" cop2hgt python3 "$D/cop2hgt.py" "$BBOX" "$WORK/hgt" "$WORK"
-out="$OUT/${BASE}.dem.zip"
+out="$OUT/${BASE}.dem${PART_SUFFIX:-}.zip"
 rm -f "$out"
 "$D/measure.sh" zip-hgt bash -c "cp '$R/licenses/COPERNICUS.txt' '$WORK/hgt/LICENSE.txt' && cd '$WORK/hgt' && zip -q -j -9 '$out' *.hgt LICENSE.txt"
 stamp=$(cat "$WORK/dem-date.txt" 2>/dev/null || date -u +%F)
