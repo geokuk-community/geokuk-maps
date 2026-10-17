@@ -24,6 +24,9 @@ on:
         type: choice
         options: [none, draft, release, finalize, check]
         default: none
+      tag:
+        description: "Release tag layers-YYYY-MM[suffix]; default layers-<current year-month> (a published tag cannot be reused, use a suffix such as layers-2026-10b)"
+        default: ""
       from_run:
         description: "Publish the artifacts of this earlier run (run id) without building; use with publish=draft or release"
         default: ""
@@ -55,7 +58,7 @@ jobs:
           import json, os, re
           regions = [r for r in re.split(r'[\s,]+', os.environ['REGIONS']) if r]
           for r in regions:
-              if not re.fullmatch(r'[a-z0-9-]+(/[a-z0-9-]+)*(=[a-z0-9-]+(/[a-z0-9-]+)*)?', r):
+              if not re.fullmatch(r'[a-z0-9-]+(/[a-z0-9-]+)*(=[a-z0-9-]+(/[a-z0-9-]+)*)?(:[1-9][0-9]*/[1-9][0-9]*(/(lat|lon))?)?', r):
                   raise SystemExit('Invalid region: ' + r)
           print('matrix=' + json.dumps({'region': sorted(set(regions))}))
           PY
@@ -75,6 +78,7 @@ jobs:
       WRITER_TYPE: ${{ inputs.writer || 'ram' }}
       PARALLEL: ${{ inputs.parallel || '2' }}
       JAVA_OPTS: -Xmx10g
+      TAG: ${{ inputs.tag }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
@@ -105,7 +109,10 @@ jobs:
           } | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Artifact name
         id: art
-        run: KEY=${REGION%%=*}; echo "name=region-${KEY//\//_}" >> "$GITHUB_OUTPUT"
+        run: |
+          KEY=${REGION%%:*}; KEY=${KEY%%=*}
+          if [[ "$REGION" == *:* ]]; then SPEC=${REGION##*:}; KEY="$KEY-p${SPEC%%/*}"; fi
+          echo "name=region-${KEY//\//_}" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ steps.art.outputs.name }}
@@ -150,6 +157,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MODE: ${{ inputs.publish }}
+          TAG: ${{ inputs.tag }}
           DIR: ${{ github.workspace }}/upload
         run: scripts/publish.sh
 

@@ -3,7 +3,7 @@
 Usage: build-catalog.py meta_dir region name south,west,north,east [url_prefix]
 Environment: EXISTING_CATALOG = path of an existing layers.json to merge the new layers into.
 File name = <region with / replaced by _>.<type>.<extension>; files[].path = <region>.<type>.<extension>."""
-import glob, json, os, sys
+import glob, json, os, re, sys
 from datetime import datetime, timezone
 
 SOURCE = 'https://github.com/geokuk-community/geokuk-maps/releases/download/'
@@ -30,13 +30,16 @@ def build(folder, region, name, bbox, prefix):
         with open(path, encoding='utf-8') as f:
             m = json.load(f)
         t = TYPES[m['type']]
-        base = os.path.basename(path)[:-len('.%s.meta.json' % m['type'])]
+        match = re.fullmatch(r'(.+)\.%s(?:\.([0-9]+))?\.meta\.json' % m['type'], os.path.basename(path))
+        base, part = match.group(1), match.group(2)
+        suffix = '.' + part if part else ''
+        extension = m['name'].rsplit('.', 1)[1]
         coverage = {'bbox': [south, west, north, east]}
         if os.path.exists(os.path.join(folder, base + '.poly')):
             coverage['poly'] = prefix + base + '.poly'
         layer = {'id': '%s/%s' % (m['type'], region), 'type': m['type'], 'region': region, 'format': t['format'],
                  'name': t['name'] % name,
-                 'files': [{'name': m['name'], 'path': '%s.%s.%s' % (region, m['type'], m['name'].rsplit('.', 1)[1]),
+                 'files': [{'name': m['name'], 'path': '%s.%s%s.%s' % (region, m['type'], suffix, extension),
                             'url': prefix + m['name'], 'size': m['size'], 'sha256': m['sha256'], 'date': m['produced']}],
                  'size': m['size'], 'dataDate': m['dataDate'], 'produced': m['produced'], 'dataSource': m['dataSource']}
         if 'zoom' in m:
@@ -44,6 +47,8 @@ def build(folder, region, name, bbox, prefix):
         if 'contourInterval' in m:
             layer['contourInterval'] = m['contourInterval']
         layer['coverage'] = coverage
+        if part:
+            layer['_parts'] = {'total': int(os.environ['PART_TOTAL']), 'have': [int(part)]}
         for k in ('license', 'attribution', 'attributionFull', 'theme', 'note'):
             if k in t:
                 layer[k] = t[k]

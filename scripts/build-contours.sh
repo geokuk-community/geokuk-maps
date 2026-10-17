@@ -23,7 +23,7 @@ monitor=$!
 kill "$monitor" 2>/dev/null || true
 # The tile files are sorted and have disjoint ids, so the merge streams; sort would hold everything in memory.
 "$D/measure.sh" osmium-merge osmium merge --overwrite -o contours.pbf contours/*.pbf || "$D/measure.sh" osmium-sort osmium sort --overwrite -o contours.pbf contours/*.pbf
-out="$OUT/${BASE}.contours.map"
+out="$OUT/${BASE}.contours${PART_SUFFIX:-}.map"
 "$D/measure.sh" write-map osmosis -q --rb file=contours.pbf \
   --mw file="$out" type="${WRITER_TYPE:-hd}" bbox="$BBOX" threads="$(nproc)" \
   tag-conf-file="$R/mapping/contours.xml" zoom-interval-conf=5,0,7,10,8,11,14,12,21 \
