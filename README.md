@@ -41,6 +41,8 @@ using the same folder structure as the base maps.
 [Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/).
 Extracts from [Geofabrik](https://download.geofabrik.de/).
 
+**Czech Republic elevation data and contours** – Zdroj: ČÚZK, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) (Digital Terrain Model of the Czech Republic 4th generation, DMR 4G), completed from Copernicus outside the country.
+
 **Contours and elevation data** – produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014
 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union
 and ESA; all rights reserved.

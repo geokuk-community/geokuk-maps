@@ -1,0 +1,5 @@
+Data: Digital Terrain Model of the Czech Republic 4th generation (DMR 4G), Source: ČÚZK, CC BY 4.0
+
+Zdroj: ČÚZK, CC BY 4.0. The data were converted to a 1 arc-second grid and, outside the Czech Republic and where DMR 4G has no data, completed from Copernicus DEM GLO-30.
+https://creativecommons.org/licenses/by/4.0/
+https://geoportal.cuzk.gov.cz
