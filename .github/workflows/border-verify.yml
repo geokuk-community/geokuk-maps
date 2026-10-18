@@ -1,0 +1,45 @@
+name: Border verify
+on:
+  push:
+    branches: [layers/contour-border-clip]
+    paths: [.github/workflows/border-verify.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq osmium-tool
+          python3 -m venv "$HOME/venv"
+          "$HOME/venv/bin/pip" install -q shapely==2.2.0 numpy==1.26.4
+      - name: Polygons
+        run: |
+          export PATH="$HOME/venv/bin:$PATH"
+          mkdir -p w
+          for r in europe/czech-republic europe/poland europe/germany/sachsen europe/germany/thueringen europe/germany/brandenburg europe/germany/berlin europe/austria; do
+            b=${r//\//_}
+            curl -fsSL --retry 5 -o w/$b.geofabrik.poly https://download.geofabrik.de/$r.poly || continue
+            curl -fL --retry 5 -s -o w/$b.pbf https://download.geofabrik.de/$r-latest.osm.pbf || continue
+            echo "== $r"
+            python3 scripts/region-polygon.py w/$b.pbf w/$b.geofabrik.poly w/$b.border.poly w/tmp-$b
+            rm -f w/$b.pbf
+            rm -rf w/tmp-$b
+          done
+          ls -l w
+          python3 - <<'PY'
+          import glob, importlib.util, itertools, shapely
+          spec = importlib.util.spec_from_file_location('rp', 'scripts/region-polygon.py'); rp = importlib.util.module_from_spec(spec); spec.loader.exec_module(rp)
+          polys = {p.split('/')[-1][:-len('.border.poly')]: rp.read_poly(p) for p in sorted(glob.glob('w/*.border.poly'))}
+          import math
+          def m2(g): return g.area * 111320 * 111320 * math.cos(math.radians(50.5)) / 1e6
+          for k, g in polys.items(): print(k, 'area km2 %.0f' % m2(g), 'vertices', sum(len(x.exterior.coords) for x in ([g] if g.geom_type == 'Polygon' else g.geoms)))
+          for (a, ga), (b, gb) in itertools.combinations(polys.items(), 2):
+              inter = ga.intersection(gb)
+              if not inter.is_empty or ga.distance(gb) < 0.002:
+                  print('PAIR', a, b, 'overlap km2 %.3f' % m2(inter), 'distance deg %.6f' % ga.distance(gb), 'overlap(buffered 0.001deg) km2 %.3f' % m2(ga.buffer(0.001).intersection(gb.buffer(0.001))))
+          print('Berlin in Brandenburg border:', polys.get('europe_germany_brandenburg') is not None and polys['europe_germany_brandenburg'].contains(shapely.Point(13.405, 52.52)))
+          PY
