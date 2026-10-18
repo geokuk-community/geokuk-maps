@@ -9,15 +9,19 @@ jobs:
   probe:
     runs-on: ubuntu-24.04
     steps:
-      - run: |
-          UA='GeoKuk-vrstvy/1.0 (+https://github.com/geokuk-community/geokuk-maps)'
-          curl -sS -A "$UA" -o /tmp/top.xml https://atom.cuzk.gov.cz/DMR4G-SJTSK/DMR4G-SJTSK.xml
-          python3 - <<'PY'
-          import re
-          s=open('/tmp/top.xml',encoding='utf-8-sig').read()
-          e=s.split('<entry>')
-          print('entries',len(e)-1); print(e[1][-1500:])
-          print('georss' , len(re.findall('georss',s)))
-          PY
-          curl -sS -A "$UA" https://atom.cuzk.gov.cz/DMR4G-SJTSK/datasetFeeds/CZ-00025712-CUZK_DMR4G-SJTSK_BENE09.xml | tail -c 1800
-          for u in https://openzu.cuzk.gov.cz/opendata/DMR4G/epsg-5514/BENE09.zip; do curl -sSI -A "$UA" $u | head -8; done
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq gdal-bin python3-numpy
+          python3 -m venv "$HOME/venv"
+          "$HOME/venv/bin/pip" install -q -r scripts/requirements.txt
+      - name: Liberecky kraj
+        run: |
+          export PATH="$HOME/venv/bin:$PATH"
+          BBOX=50.39,14.43,51.05,15.40
+          mkdir -p w
+          /usr/bin/time -v python3 scripts/cop2hgt.py $BBOX w/hgt w/cop 2>&1 | grep -E "Elapsed|Maximum resident|HGT tiles|Copernicus"
+          cp -r w/hgt w/hgt-cop
+          /usr/bin/time -v python3 scripts/cuzk2hgt.py $BBOX w/hgt w/cz 2>&1 | grep -v -E "^\s+(Page|Swaps|File|Socket|Signals|Volun|Invol|Average|Major|Minor|Exit|Percent|System|User|Command)" 
+          ls -l w/hgt; df -h / | tail -1
