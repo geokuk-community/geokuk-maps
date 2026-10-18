@@ -11,8 +11,13 @@ jobs:
     steps:
       - run: |
           UA='GeoKuk-vrstvy/1.0 (+https://github.com/geokuk-community/geokuk-maps)'
-          curl -sS -A "$UA" -o /tmp/top.xml -w '%{http_code} %{size_download}\n' https://atom.cuzk.gov.cz/DMR4G-SJTSK/DMR4G-SJTSK.xml
-          head -c 3000 /tmp/top.xml; echo; echo ----
-          grep -o 'href="[^"]*"' /tmp/top.xml | head -20
-          for u in $(grep -o 'https\?://[^" <]*' /tmp/top.xml | grep -i 'xml' | head -3); do echo "== $u"; curl -sS -A "$UA" "$u" | head -c 2500; echo; done
-          curl -sSI -A "$UA" https://openzu.cuzk.gov.cz/opendata/DMR4G/epsg-5514/BOUKO5.zip | head -12
+          curl -sS -A "$UA" -o /tmp/top.xml https://atom.cuzk.gov.cz/DMR4G-SJTSK/DMR4G-SJTSK.xml
+          python3 - <<'PY'
+          import re
+          s=open('/tmp/top.xml',encoding='utf-8-sig').read()
+          e=s.split('<entry>')
+          print('entries',len(e)-1); print(e[1][-1500:])
+          print('georss' , len(re.findall('georss',s)))
+          PY
+          curl -sS -A "$UA" https://atom.cuzk.gov.cz/DMR4G-SJTSK/datasetFeeds/CZ-00025712-CUZK_DMR4G-SJTSK_BENE09.xml | tail -c 1800
+          for u in https://openzu.cuzk.gov.cz/opendata/DMR4G/epsg-5514/BENE09.zip; do curl -sSI -A "$UA" $u | head -8; done
