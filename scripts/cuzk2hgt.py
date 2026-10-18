@@ -6,20 +6,25 @@ the rest (outside the Czech Republic, gaps) stays as it was.
 Stage A: the sheets (SM5, about 2.7 x 2.3 km) are downloaded from the ČÚZK ATOM service one at a time per worker, averaged into
 a 20 m grid in S-JTSK (a memory-mapped file) and dropped at once, so the disk holds only the grid.
 Stage B: gdalwarp resamples the grid to the 1" tiles.
-Requires numpy, laspy[lazrs] and GDAL (gdalwarp)."""
+At the edge of the DMR 4G coverage the terrain model fades into Copernicus (a surface model, up to tens of metres higher in forests)
+over BLEND pixels so that no step remains at the border.
+Requires numpy, scipy, laspy[lazrs] and GDAL (gdalwarp)."""
 import io, math, os, re, subprocess, sys, time, urllib.request, zipfile
 from multiprocessing import Pool
 import numpy as np
+from scipy.ndimage import distance_transform_edt
 import laspy
 
 INDEX = 'https://atom.cuzk.gov.cz/DMR4G-SJTSK/DMR4G-SJTSK.xml'
 SHEET = 'https://openzu.cuzk.gov.cz/opendata/DMR4G/epsg-5514/%s.zip'
 HEADERS = {'User-Agent': 'GeoKuk-vrstvy/1.0 (+https://github.com/geokuk-community/geokuk-maps)'}
-WORKERS = 4   # concurrent downloads (the terms of the service forbid overloading it)
+WORKERS = 2   # concurrent downloads (the terms of the service forbid overloading it)
 PAUSE = 0.1   # seconds between two downloads of one worker
 X0, Y0, CELL = -960000.0, -920000.0, 20.0  # upper left corner and cell size of the grid in S-JTSK
 W, H = 27000, 16000
 NODATA = -32768
+BLEND = 10  # pixels (about 300 m) over which DMR 4G fades into the Copernicus surface model at the edge of its coverage
+PAD = BLEND + 2
 
 
 def fetch(url):
@@ -108,21 +113,29 @@ def stage_b(south, west, north, east, hgt_dir, work, grid):
         for o in range(math.floor(west), math.ceil(east)):
             name = '%s%02d%s%03d.hgt' % ('N' if a >= 0 else 'S', abs(a), 'E' if o >= 0 else 'W', abs(o))
             raw = os.path.join(work, 'tile.raw')
+            size = 3601 + 2 * PAD
             subprocess.run(['gdalwarp', '-q', '-overwrite', '-s_srs', 'EPSG:5514', '-t_srs', 'EPSG:4326',
-                            '-te', str(o - half), str(a - half), str(o + 1 + half), str(a + 1 + half), '-ts', '3601', '3601',
+                            '-te', str(o - half - PAD / 3600), str(a - half - PAD / 3600), str(o + 1 + half + PAD / 3600), str(a + 1 + half + PAD / 3600),
+                            '-ts', str(size), str(size),
                             '-r', 'bilinear', '-srcnodata', str(NODATA), '-dstnodata', str(NODATA), '-ot', 'Int16', '-of', 'ENVI', vrt, raw],
                            check=True)
-            dmr = np.fromfile(raw, dtype='<i2').reshape(3601, 3601)
+            dmr = np.fromfile(raw, dtype='<i2').reshape(size, size)
             for p in (raw, raw + '.hdr', raw + '.aux.xml'):
                 if os.path.exists(p):
                     os.remove(p)
             valid = dmr != NODATA
-            if not valid.any():
+            if not valid[PAD:-PAD, PAD:-PAD].any():
                 continue
+            weight = np.minimum(distance_transform_edt(valid) / BLEND, 1.0)[PAD:-PAD, PAD:-PAD]
+            dmr = dmr[PAD:-PAD, PAD:-PAD]
+            valid = valid[PAD:-PAD, PAD:-PAD]
             path = os.path.join(hgt_dir, name)
-            tile = np.fromfile(path, dtype='>i2').reshape(3601, 3601).astype(np.float32) if os.path.exists(path) \
-                else np.zeros((3601, 3601), np.float32)
-            tile[valid] = dmr[valid] / 10.0
+            if os.path.exists(path):
+                tile = np.fromfile(path, dtype='>i2').reshape(3601, 3601).astype(np.float32)
+                tile[valid] = weight[valid] * dmr[valid] / 10.0 + (1 - weight[valid]) * tile[valid]
+            else:
+                tile = np.zeros((3601, 3601), np.float32)
+                tile[valid] = dmr[valid] / 10.0
             np.rint(tile).astype('>i2').tofile(path)
             replaced += 1
             print('%s: %.1f %% from DMR 4G' % (name, 100.0 * valid.mean()), flush=True)
