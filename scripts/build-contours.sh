@@ -10,7 +10,7 @@ source "$D/check-inputs.sh"
 mkdir -p "$OUT" "$WORK/hgt" "$WORK/contours"
 export OUT
 unzip -q -o "$HGT_ZIP" -d "$WORK/hgt"
-"$D/build-border.sh" "$WORK/border.poly"
+if [ -s "${BORDER_POLY:-}" ]; then cp "$BORDER_POLY" "$WORK/border.poly"; else "$D/build-border.sh" "$WORK/border.poly"; fi
 cd "$WORK"
 i=0
 : > commands.txt

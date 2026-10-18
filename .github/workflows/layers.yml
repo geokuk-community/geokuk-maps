@@ -49,6 +49,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.list.outputs.matrix }}
+      borders: ${{ steps.list.outputs.borders }}
     steps:
       - id: list
         env:
@@ -61,11 +62,49 @@ jobs:
               if not re.fullmatch(r'[a-z0-9-]+(/[a-z0-9-]+)*(=[a-z0-9-]+(/[a-z0-9-]+)*)?(:[1-9][0-9]*/[1-9][0-9]*(/(lat|lon))?)?', r):
                   raise SystemExit('Invalid region: ' + r)
           print('matrix=' + json.dumps({'region': sorted(set(regions))}))
+          print('borders=' + json.dumps({'region': sorted({r.split(':')[0] for r in regions})}))
           PY
 
-  build:
+  border:
     needs: plan
-    if: ${{ !contains(fromJSON('["finalize", "check"]'), inputs.publish) && inputs.from_run == '' }}
+    if: ${{ !contains(fromJSON('["finalize", "check"]'), inputs.publish) && inputs.from_run == '' && contains(fromJSON('["all", "dem", "contours", ""]'), inputs.types) }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix: ${{ fromJSON(needs.plan.outputs.borders) }}
+    env:
+      REGION: ${{ matrix.region }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq osmium-tool
+          python3 -m venv "$HOME/venv"
+          "$HOME/venv/bin/pip" install -q -r scripts/requirements.txt
+          echo "$HOME/venv/bin" >> "$GITHUB_PATH"
+      - name: Border
+        run: |
+          KEY=${REGION%%=*}
+          export GEOFABRIK=${REGION#*=} BASE=${KEY//\//_} OUT="$PWD/out" WORK="$PWD/work"
+          mkdir -p out work
+          scripts/build-border.sh "$OUT/border.poly"
+          cat out/measurements.tsv
+      - id: art
+        run: |
+          KEY=${REGION%%=*}
+          echo "name=border-${KEY//\//_}" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.art.outputs.name }}
+          path: out/border.poly
+          if-no-files-found: error
+          retention-days: 1
+
+  build:
+    needs: [plan, border]
+    if: ${{ !cancelled() && needs.border.result != 'cancelled' && !contains(fromJSON('["finalize", "check"]'), inputs.publish) && inputs.from_run == '' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     strategy:
@@ -93,8 +132,21 @@ jobs:
           "$HOME/venv/bin/pip" install -q -r scripts/requirements.txt
           echo "$HOME/venv/bin" >> "$GITHUB_PATH"
           scripts/install-tools.sh
+      - name: Region border
+        if: ${{ needs.border.result == 'success' }}
+        run: |
+          KEY=${REGION%%:*}; KEY=${KEY%%=*}
+          echo "BORDER_NAME=border-${KEY//\//_}" >> "$GITHUB_ENV"
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: ${{ needs.border.result == 'success' }}
+        continue-on-error: true
+        with:
+          name: ${{ env.BORDER_NAME }}
+          path: border
       - name: Build
-        run: OUT="$PWD/out" WORK="$PWD/work" scripts/build-region.sh
+        run: |
+          [ -s border/border.poly ] && export BORDER_POLY="$PWD/border/border.poly"
+          OUT="$PWD/out" WORK="$PWD/work" scripts/build-region.sh
       - name: Summary
         if: ${{ always() }}
         run: |

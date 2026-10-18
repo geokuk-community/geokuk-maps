@@ -6,7 +6,8 @@ set -euo pipefail
 D=$(cd "$(dirname "$0")" && pwd)
 border=$1
 tmp="$WORK/border"
-mkdir -p "$tmp"
+mkdir -p "$tmp" "$OUT"
+[ -s "$OUT/$BASE.poly" ] || curl -fsSL --retry 5 -o "$OUT/$BASE.poly" "https://download.geofabrik.de/${GEOFABRIK}.poly"
 if "$D/measure.sh" border-pbf curl -fL --retry 5 --retry-delay 10 -o "$tmp/region.osm.pbf" "https://download.geofabrik.de/${GEOFABRIK}-latest.osm.pbf" \
   && "$D/measure.sh" border-polygon python3 "$D/region-polygon.py" "$tmp/region.osm.pbf" "$OUT/$BASE.poly" "$border" "$tmp"; then
   :
