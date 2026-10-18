@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Contour lines (10 m step, major every 100, medium every 50) from the HGT zip into a mapsforge .map.
-# Env: HGT_ZIP, BBOX, BASE, OUT, WORK; optional WRITER_TYPE (default hd), PARALLEL, JAVA_OPTS. Requires pyhgtmap and osmium.
+# The lines are cut at the region border (OSM administrative boundary) so that neighbouring regions do not draw them twice.
+# Env: HGT_ZIP, BBOX, GEOFABRIK, BASE, OUT, WORK; optional WRITER_TYPE (default hd), PARALLEL, JAVA_OPTS. Requires pyhgtmap and osmium.
 set -euo pipefail
 : "${HGT_ZIP:?}" "${BBOX:?}" "${BASE:?}" "${OUT:?}" "${WORK:?}"
 D=$(cd "$(dirname "$0")" && pwd)
@@ -9,13 +10,14 @@ source "$D/check-inputs.sh"
 mkdir -p "$OUT" "$WORK/hgt" "$WORK/contours"
 export OUT
 unzip -q -o "$HGT_ZIP" -d "$WORK/hgt"
+if [ -s "${BORDER_POLY:-}" ]; then cp "$BORDER_POLY" "$WORK/border.poly"; else "$D/build-border.sh" "$WORK/border.poly"; fi
 cd "$WORK"
 i=0
 : > commands.txt
 for f in hgt/*.hgt; do
   i=$((i + 1))
   b=$(basename "$f" .hgt)
-  echo "pyhgtmap --step=10 --line-cat=100,50 --pbf --max-nodes-per-way=1000 --simplifyContoursEpsilon=0.00001 --max-nodes-per-tile=0 --start-node-id=$((i * 1000000000)) --start-way-id=$((i * 1000000000)) --output-prefix=contours/$b $f" >> commands.txt
+  echo "pyhgtmap --step=10 --line-cat=100,50 --pbf --max-nodes-per-way=1000 --simplifyContoursEpsilon=0.00001 --max-nodes-per-tile=0 --polygon=border.poly --start-node-id=$((i * 1000000000)) --start-way-id=$((i * 1000000000)) --output-prefix=contours/$b $f" >> commands.txt
 done
 ( while sleep 30; do echo "resources: $(free -m | sed -n 2p) | disk: $(df -m / | tail -1 | tr -s " " | cut -d" " -f3,4) MB | load: $(cut -d" " -f1-3 /proc/loadavg) | contours: $(du -sm contours | cut -f1) MB, $(ls contours | wc -l) files"; done ) &
 monitor=$!
