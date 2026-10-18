@@ -1,6 +1,8 @@
 name: ČÚZK probe
 on:
-  workflow_dispatch:
+  push:
+    branches: [layers/cuzk-dmr4g]
+    paths: [.github/workflows/cuzk-probe.yml]
 permissions:
   contents: read
 jobs:
