@@ -26,7 +26,7 @@ jobs:
           import base64, importlib.util, io, os, shutil, sys
           import numpy as np
           sys.path.insert(0, 'scripts')
-          spec = importlib.util.spec_from_file_location('c', 'scripts/cuzk2hgt.py'); c = importlib.util.module_from_spec(spec); spec.loader.exec_module(c)
+          import cuzk2hgt as c
           south, west, north, east = 50.6, 15.4, 50.9, 16.0
           codes = c.sheets(south, west, north, east)
           os.makedirs('w/cz', exist_ok=True)
