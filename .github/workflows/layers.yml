@@ -9,16 +9,16 @@ on:
       types:
         description: "Layers to build"
         type: choice
-        options: [all, routes, dem, contours]
+        options: [all, tourist, dem, contours]
         default: all
       parallel:
         description: "Concurrent pyhgtmap processes for contours"
         default: "2"
       writer:
-        description: "Map writer for routes: ram (fast, memory-hungry) or hd"
+        description: "Map writer for the tourist layer: ram (fast, memory-hungry), hd, or auto (hd when the filtered input exceeds 400 MB)"
         type: choice
-        options: [ram, hd]
-        default: ram
+        options: [auto, ram, hd]
+        default: auto
       publish:
         description: "none = artifacts only, draft = upload to a draft release, release = build, upload and publish (main only), finalize = verify the draft release and publish it without building (main only), check = the same verification without publishing"
         type: choice
@@ -75,7 +75,7 @@ jobs:
     env:
       REGION: ${{ matrix.region }}
       TYPES: ${{ inputs.types || 'all' }}
-      WRITER_TYPE: ${{ inputs.writer || 'ram' }}
+      WRITER_TYPE: ${{ inputs.writer || 'auto' }}
       PARALLEL: ${{ inputs.parallel || '2' }}
       JAVA_OPTS: -Xmx10g
       TAG: ${{ inputs.tag }}

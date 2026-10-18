@@ -10,14 +10,14 @@ The layers are ordinary Mapsforge files, so other Mapsforge-based apps can use t
 
 | Layer | File | Content |
 |---|---|---|
-| Routes | `<region>.routes.map` | Marked hiking, cycling, ski and horse routes, including Czech/Slovak trail colours |
+| Tourist | `<region>.tourist.map` | Marked hiking, cycling, ski and horse routes, including Czech/Slovak trail colours and the names of official hiking routes; rocks, crosses, guideposts, information boards, viewpoints, solitary trees, ridges, mines, bunkers, fords, weirs, hunting stands, shelters, path difficulty (`sac_scale`, `mtb:scale`, `trail_visibility`, `incline`) and other outdoor features that the base maps do not contain |
 | Contours | `<region>.contours.map` | Contour lines |
 | Elevation | `<region>.dem.zip` | Elevation tiles (`.hgt`, 1 arc-second) for hillshading |
 
 `<region>` is the path of the base map on download.mapsforge.org without the extension, for example:
 
     europe/czech-republic.map            (base map, from mapsforge)
-    europe/czech-republic.routes.map
+    europe/czech-republic.tourist.map
     europe/czech-republic.contours.map
     europe/czech-republic.dem.zip
 
@@ -26,7 +26,7 @@ Base maps are not hosted here. Download them from download.mapsforge.org or its 
 ## Download
 
 Each generation is published as a release tagged `layers-YYYY-MM`. Asset names use `_` instead of `/`,
-for example `europe_germany_bayern.routes.map`.
+for example `europe_germany_bayern.tourist.map`.
 
 The catalogue of all files, with sizes, SHA-256 checksums and dates, is always available at:
 
@@ -37,7 +37,7 @@ using the same folder structure as the base maps.
 
 ## Sources and licences
 
-**Routes** – © OpenStreetMap contributors, data available under the
+**Tourist** – © OpenStreetMap contributors, data available under the
 [Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/).
 Extracts from [Geofabrik](https://download.geofabrik.de/).
 
@@ -61,7 +61,7 @@ The scripts and workflows in this repository are licensed under GPL-3.0-or-later
 
 ## Česky
 
-Vrstvy k offline mapám programu GeoKuk: turistické a cyklotrasy, vrstevnice a výšková data pro
+Vrstvy k offline mapám programu GeoKuk: turistické a cyklotrasy s body pro orientaci v terénu, vrstevnice a výšková data pro
 stínování terénu. Každá vrstva patří k jedné mapě z download.mapsforge.org a má stejný název.
 GeoKuk je stahuje sám v okně **Mapy → Správa map**. Ručně stažené soubory patří do složky `layers/`
 se stejnou strukturou podsložek, jakou mají mapy.

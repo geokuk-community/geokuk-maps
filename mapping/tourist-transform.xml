@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!-- Osmosis tag transform for the tourist layer. The mapsforge writer keeps only its native strings (name, ref,
+     addr:housenumber, ele), so the route name and the board number are moved into native fields.
+     Based on tag-transform.xml of mapsforge-freemap-hiking-style (https://github.com/FreemapSlovakia/mapsforge-freemap-hiking-style). -->
+<translations>
+	<translation>
+		<name>info board ref</name>
+		<description>ref of tourism=information, information=board as addr:housenumber</description>
+		<match type="node" mode="and">
+			<tag k="tourism" v="information"/>
+			<tag k="information" v="board"/>
+			<tag k="ref" match_id="board_ref" v="(^[0-9]{1,4})"/>
+		</match>
+		<output>
+			<copy-all/>
+			<tag k="addr:housenumber" from_match="board_ref" v="{1}"/>
+		</output>
+	</translation>
+	<translation>
+		<name>hiking route name</name>
+		<description>name of an official hiking route (fmrelhikingname) as ref of the way</description>
+		<match type="way" mode="and">
+			<tag k="fmrelhikingname" match_id="hiking_name" v="(.*)"/>
+		</match>
+		<output>
+			<copy-all/>
+			<tag k="ref" from_match="hiking_name" v="{1}"/>
+		</output>
+	</translation>
+</translations>

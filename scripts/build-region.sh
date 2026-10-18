@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds the selected layers of one region and its catalog fragment.
 # Env: REGION = mapsforge key, optionally key=geofabrik/path when the Geofabrik path differs and/or key:part/total[/lat|/lon] to build
-# one part of the dem and contours layers (routes are not split), TAG (release tag, default layers-YYYY-MM), TYPES (all|routes|dem|contours), OUT, WORK; optional PARALLEL, WRITER_TYPE, JAVA_OPTS.
+# one part of the dem and contours layers (the tourist layer is not split), TAG (release tag, default layers-YYYY-MM), TYPES (all|tourist|dem|contours), OUT, WORK; optional PARALLEL, WRITER_TYPE, JAVA_OPTS.
 set -euo pipefail
 : "${REGION:?}" "${OUT:?}" "${WORK:?}"
 D=$(cd "$(dirname "$0")" && pwd)
@@ -28,15 +28,15 @@ if [ -n "$PARTSPEC" ]; then
   IFS=/ read -r part total axis <<< "$PARTSPEC"
   BBOX=$(python3 "$D/region-parts.py" "$BBOX" "$part" "$total" ${axis:+"$axis"})
   export BBOX PART_SUFFIX=".$part"
-  [ "$TYPES" = routes ] && { echo "Routes are not split into parts" >&2; exit 2; }
+  [ "$TYPES" = tourist ] && { echo "The tourist layer is not split into parts" >&2; exit 2; }
   [ "$TYPES" = all ] && TYPES=dem+contours
 fi
 last=${REGION##*/}
 NAME=$(python3 -c 'import sys; print(sys.argv[1].replace("-"," ").title())' "$last")
 echo "Region $REGION, name $NAME, bbox $BBOX"
 export WORK="$WORK/$BASE"
-if [ "$TYPES" = all ] || [ "$TYPES" = routes ]; then
-  "$D/build-routes.sh"
+if [ "$TYPES" = all ] || [ "$TYPES" = tourist ]; then
+  "$D/build-tourist.sh"
   rm -rf "$WORK"/*
 fi
 if [ "$TYPES" = all ] || [ "$TYPES" = dem ] || [ "$TYPES" = contours ] || [ "$TYPES" = dem+contours ]; then

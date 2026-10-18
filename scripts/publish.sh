@@ -16,7 +16,7 @@ api() { gh api "$@"; }
 ID=$(api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate --jq ".[]|select(.tag_name==\"$TAG\")|.id" | head -1)
 if [ -z "$ID" ]; then
   ID=$(api -X POST "repos/$GITHUB_REPOSITORY/releases" -f tag_name="$TAG" -f name="Layers $TAG" -F draft=true \
-    -f body="Offline map layers for GeoKuk (routes, contours, elevation data). See README.md and layers.json." --jq .id)
+    -f body="Offline map layers for GeoKuk (tourist, contours, elevation data). See README.md and layers.json." --jq .id)
   echo "Created draft release $TAG ($ID)"
 fi
 if [ "$MODE" = draft ] && [ "$(api "repos/$GITHUB_REPOSITORY/releases/$ID" --jq .draft)" != true ]; then

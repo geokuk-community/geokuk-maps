@@ -13,8 +13,8 @@ COPERNICUS = ('produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and �
               'Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30.')
 
 TYPES = {
-    'routes': dict(name='Hiking, cycling and MTB routes – %s', format='map', license='ODbL 1.0',
-                   attribution='© OpenStreetMap contributors', theme='routes'),
+    'tourist': dict(name='Routes and outdoor features – %s', format='map', license='ODbL 1.0',
+                    attribution='© OpenStreetMap contributors', theme='tourist'),
     'contours': dict(name='Contour lines – %s (10 m)', format='map', license='Copernicus COP-DEM-GLO-30-F',
                      attribution='Contours: Copernicus DEM GLO-30 © DLR/Airbus, ESA', attributionFull=COPERNICUS,
                      note='Copernicus DEM is a surface model (includes buildings and forest canopy).'),
