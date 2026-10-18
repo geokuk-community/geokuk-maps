@@ -28,4 +28,14 @@ out="$OUT/${BASE}.contours${PART_SUFFIX:-}.map"
   --mw file="$out" type="${WRITER_TYPE:-hd}" bbox="$BBOX" threads="$(nproc)" \
   tag-conf-file="$R/mapping/contours.xml" zoom-interval-conf=5,0,7,10,8,11,14,12,21 \
   comment="Contours from Copernicus GLO-30 DEM. Produced using Copernicus WorldDEM-30 (c) DLR e.V. 2010-2014 and (c) Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30."
-"$D/write-meta.py" contours "$out" "$(python3 -I -c 'import json,sys;print(json.load(open(sys.argv[1]))["dataDate"])' "${HGT_ZIP%.zip}.meta.json" 2>/dev/null || date -u +%F)" "Copernicus GLO-30 DEM (AWS Open Data)" "$R/licenses/COPERNICUS.txt" '{"zoom":{"min":12,"max":21},"contourInterval":10}'
+if [ "${DEM_CUZK:-0}" = 1 ]; then
+  license="$WORK/LICENSES.txt"
+  cat "$R/licenses/CUZK.txt" <(echo) "$R/licenses/COPERNICUS.txt" > "$license"
+  source_name="ČÚZK DMR 4G; Copernicus GLO-30 DEM (AWS Open Data) outside the Czech Republic"
+  extra='{"zoom":{"min":12,"max":21},"contourInterval":10,"license":"CC BY 4.0 (ČÚZK); Copernicus COP-DEM-GLO-30-F","attribution":"Contours: Zdroj: ČÚZK, CC BY 4.0; Copernicus DEM GLO-30 © DLR/Airbus, ESA","attributionFull":"Zdroj: ČÚZK, CC BY 4.0. Copernicus: produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.","note":"Contours of the Czech Republic come from the ČÚZK DMR 4G terrain model (bare ground)."}'
+else
+  license="$R/licenses/COPERNICUS.txt"
+  source_name="Copernicus GLO-30 DEM (AWS Open Data)"
+  extra='{"zoom":{"min":12,"max":21},"contourInterval":10}'
+fi
+"$D/write-meta.py" contours "$out" "$(python3 -I -c 'import json,sys;print(json.load(open(sys.argv[1]))["dataDate"])' "${HGT_ZIP%.zip}.meta.json" 2>/dev/null || date -u +%F)" "$source_name" "$license" "$extra"

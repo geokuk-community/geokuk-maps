@@ -31,6 +31,8 @@ if [ -n "$PARTSPEC" ]; then
   [ "$TYPES" = tourist ] && { echo "The tourist layer is not split into parts" >&2; exit 2; }
   [ "$TYPES" = all ] && TYPES=dem+contours
 fi
+# DMR 4G (bare ground) replaces the Copernicus surface model in the Czech Republic.
+[ "$REGION" = europe/czech-republic ] && export DEM_CUZK=1
 last=${REGION##*/}
 NAME=$(python3 -c 'import sys; print(sys.argv[1].replace("-"," ").title())' "$last")
 echo "Region $REGION, name $NAME, bbox $BBOX"

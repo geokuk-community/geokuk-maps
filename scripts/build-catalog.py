@@ -50,7 +50,9 @@ def build(folder, region, name, bbox, prefix):
         if part:
             layer['_parts'] = {'total': int(os.environ['PART_TOTAL']), 'have': [int(part)]}
         for k in ('license', 'attribution', 'attributionFull', 'theme', 'note'):
-            if k in t:
+            if k in m:
+                layer[k] = m[k]
+            elif k in t:
                 layer[k] = t[k]
         layer['licenseText'] = m['licenseText']
         layers.append(layer)
