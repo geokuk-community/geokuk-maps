@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 # read the given .pbf/.osm file and add fmrel* tags for ways in relations (type=route, route=*)
 # Modified 2026-10-15: isValidHikingSymbol compares the value literally (not as a regular expression); a symbol outside the list is replaced by none for the other route types.
+# Modified 2026-10-18: fmrelhikingname = name:cs or name of official hiking routes (rwn/nwn/iwn) without section names ("A - B", "[Z] ...", spojka, etapa).
 #
 # Parameters:
 # <1> - imported file
@@ -319,6 +320,13 @@ sub getFmRelHikingTags {
 		if ($network eq "lwn") { $network = "local"; }
 		elsif (($network eq "rwn") or ($network eq "nwn") or ($network eq "iwn")) { $network = ""; }
 		else { $network = "unknown"; }
+		my $name = $relTags->{"name:cs"} // $relTags->{"name"};
+		if (defined($name) and $network eq "") {
+			$name =~ s/^\[[^\]]*\]\s*//;	# KČT prefix [Z] [M] [Ž] [Č]
+			my $keep = $name ne "" && $name !~ /^[Ss]pojka/;
+			if ($keep and $name !~ /^Via Czechia/ and ($name =~ /\s(-|\xE2\x80\x93)\s/ or $name =~ /etapa/i)) { $keep = 0; }	# "A - B" names a section, not the route
+			if ($keep) { $fmRelTags->{"fmrelhikingname"} = $name; }
+		}
 		$fmRelTags->{"fmrelhiking" . $network . $colour} = $symbol;
 		$fmRelTags->{"fmrelhiking" . $colour} = $symbol; # tag duplication, reason unknown :(
 		if (defined($ref)) {
