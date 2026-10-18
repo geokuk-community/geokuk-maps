@@ -884,7 +884,6 @@
 		<osm-tag key="tourism" value="theme_park" zoom-appear="15" />
 		<osm-tag key="tourism" value="wilderness_hut" zoom-appear="15" />
 		<osm-tag key="shop" value="garden_centre" zoom-appear="15" />
-		<osm-tag key="railway" value="abandoned" zoom-appear="14" />
 		<osm-tag key="railway" value="construction" zoom-appear="14" />
 		<osm-tag key="service" value="crossover" zoom-appear="15" />
 		<osm-tag key="service" value="siding" zoom-appear="15" />
@@ -895,10 +894,7 @@
 		<osm-tag key="building" value="temple" zoom-appear="15" />
 		<osm-tag key="building" value="construction" zoom-appear="15" />
 		<osm-tag key="building" value="dormitory" zoom-appear="15" />
-		<osm-tag key="building" value="kindergarten" zoom-appear="15" />
-		<osm-tag key="building" value="stadium" zoom-appear="15" />
 		<osm-tag key="building" value="station" zoom-appear="15" />
-		<osm-tag key="building" value="synagogue" zoom-appear="15" />
 		<osm-tag key="piste:type" value="snow_park" zoom-appear="13" />
 		<osm-tag key="piste:type" value="skitour" equivalent-values="hike" zoom-appear="13" />
 		<osm-tag key="barrier" value="hedge" zoom-appear="15" />
@@ -912,8 +908,6 @@
 		<osm-tag key="man_made" value="water_tower" zoom-appear="15" />
 		<osm-tag key="man_made" value="water_works" zoom-appear="15" />
 		<osm-tag key="man_made" value="wastewater_plant" zoom-appear="15" />
-		<osm-tag key="power" value="line" zoom-appear="10" />
-		<osm-tag key="power" value="minor_line" zoom-appear="13" />
 		<osm-tag key="power" value="generator" zoom-appear="13" />
 		<osm-tag key="generator:source" value="solar" renderable="false" />
 		<osm-tag key="generator:method" value="photovoltaic" renderable="false" />

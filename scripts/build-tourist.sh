@@ -41,6 +41,9 @@ mapfile -t features < <(python3 "$D/tourist-filter.py")
 rm -f "$pbf"
 "$D/measure.sh" addfmreltags perl "$D/addfmreltags.pl" "$WORK/routes.pbf" "$WORK"
 test -s "$WORK/routes.pbf-fmrel.pbf"
+osmium tags-filter --overwrite -o "$WORK/named.pbf" "$WORK/routes.pbf-fmrel.pbf" w/fmrelhikingname
+echo "Ways with the name of an official hiking route: $(osmium fileinfo -e -g data.count.ways "$WORK/named.pbf")"
+rm -f "$WORK/named.pbf"
 writer=${WRITER_TYPE:-auto}
 input_mb=$(( ($(stat -c %s "$WORK/features.pbf") + $(stat -c %s "$WORK/routes.pbf-fmrel.pbf")) / 1048576 ))
 if [ "$writer" = auto ]; then
