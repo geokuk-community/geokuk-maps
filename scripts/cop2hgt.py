@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Copernicus GLO-30 (AWS Open Data) -> HGT 1" (3601x3601, big-endian int16) for an area.
 Usage: cop2hgt.py south,west,north,east output_dir work_dir
-Requires numpy and GDAL (gdalbuildvrt, gdalwarp)."""
+Above 50 degrees GLO-30 has a coarser spacing along the longitude (1.5" to 10"); the tiles are resampled with a cubic spline
+and smoothed along the longitude so that no vertical stripes remain in the shading and the contours.
+Requires numpy, scipy and GDAL (gdalbuildvrt, gdalwarp)."""
 import email.utils, math, os, subprocess, sys, time, urllib.error, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
+from scipy.ndimage import gaussian_filter1d
 
 URL = 'https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_{n}_00_{e}_00_DEM/Copernicus_DSM_COG_10_{n}_00_{e}_00_DEM.tif'
 
@@ -25,6 +28,19 @@ def load_tile_list():
         except OSError:
             time.sleep(2 * (attempt + 1))
     raise RuntimeError('tile list not available')
+
+
+SIGMA = 0.7  # smoothing along the longitude in output (1") columns per unit of the coarser source spacing
+PAD = 8  # columns warped beyond each side of a tile so that the smoothing is the same on both sides of a tile edge
+
+
+def spacing(lat):
+    """GLO-30 spacing along the longitude in arc seconds for the tile with the south edge at lat."""
+    a = abs(lat) if lat >= 0 else abs(lat) - 1  # the southern hemisphere tiles lie between -lat-1 and -lat
+    for limit, seconds in ((85, 10), (80, 5), (70, 3), (60, 2), (50, 1.5)):
+        if a >= limit:
+            return seconds
+    return 1
 
 
 def download(args):
@@ -88,10 +104,14 @@ def main():
     for a, o in targets:
         n, e = tile_name(a, o)
         raw = os.path.join(work, 'tile.raw')
-        subprocess.run(['gdalwarp', '-q', '-overwrite', '-te', str(o - half), str(a - half), str(o + 1 + half), str(a + 1 + half),
-                        '-ts', '3601', '3601', '-r', 'bilinear', '-ot', 'Float32', '-of', 'ENVI', vrt, raw], check=True)
-        v = np.fromfile(raw, dtype='<f4').reshape(3601, 3601)
+        subprocess.run(['gdalwarp', '-q', '-overwrite', '-te', str(o - half - PAD / 3600), str(a - half), str(o + 1 + half + PAD / 3600), str(a + 1 + half),
+                        '-ts', str(3601 + 2 * PAD), '3601', '-r', 'cubicspline', '-ot', 'Float32', '-of', 'ENVI', vrt, raw], check=True)
+        v = np.fromfile(raw, dtype='<f4').reshape(3601, 3601 + 2 * PAD)
         v = np.nan_to_num(v, nan=0.0)  # missing tiles are sea (height 0, as in SRTM)
+        ratio = spacing(a)
+        if ratio > 1:
+            v = gaussian_filter1d(v, SIGMA * ratio, axis=1, mode='nearest')
+        v = v[:, PAD:-PAD]
         if not (v > 0).any():
             continue
         np.rint(v).astype('>i2').tofile(os.path.join(output, n + e + '.hgt'))
