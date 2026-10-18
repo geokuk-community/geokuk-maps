@@ -1,0 +1,16 @@
+name: ČÚZK probe
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: |
+          UA='GeoKuk-vrstvy/1.0 (+https://github.com/geokuk-community/geokuk-maps)'
+          curl -sS -A "$UA" -o /tmp/top.xml -w '%{http_code} %{size_download}\n' https://atom.cuzk.gov.cz/DMR4G-SJTSK/DMR4G-SJTSK.xml
+          head -c 3000 /tmp/top.xml; echo; echo ----
+          grep -o 'href="[^"]*"' /tmp/top.xml | head -20
+          for u in $(grep -o 'https\?://[^" <]*' /tmp/top.xml | grep -i 'xml' | head -3); do echo "== $u"; curl -sS -A "$UA" "$u" | head -c 2500; echo; done
+          curl -sSI -A "$UA" https://openzu.cuzk.gov.cz/opendata/DMR4G/epsg-5514/BOUKO5.zip | head -12
