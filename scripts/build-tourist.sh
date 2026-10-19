@@ -52,8 +52,8 @@ if [ "$writer" = auto ]; then
 fi
 echo "Writer input $input_mb MB, type=$writer"
 out="$OUT/${BASE}.tourist.map"
-# The routes are the last source, so their copy of a way (with the fmrel* tags) wins over the same way from the features.
-"$D/measure.sh" "write-map-$writer" osmosis -q --rb file="$WORK/features.pbf" --rb file="$WORK/routes.pbf-fmrel.pbf" \
+# Osmosis takes the first --rb as the last source, so the copy of a way from the routes (with the fmrel* tags) wins over the same way from the features.
+"$D/measure.sh" "write-map-$writer" osmosis -q --rb file="$WORK/routes.pbf-fmrel.pbf" --rb file="$WORK/features.pbf" \
   --merge conflictResolutionMethod=lastSource --tt file="$R/mapping/tourist-transform.xml" \
   --mw file="$out" type="$writer" bbox="$BBOX" threads="$(nproc)" \
   tag-conf-file="$R/mapping/tourist.xml" zoom-interval-conf=5,0,7,10,8,11,14,12,21 \
