@@ -36,6 +36,9 @@ further settings.
 
 Map data © OpenStreetMap contributors, elevation data and contours Zdroj: ČÚZK.
 
+The screenshots show GeoKuk offline maps made from OpenStreetMap data: the base map with GeoKuk's own
+layers (tourist, contour lines and hillshading) in GeoKuk's own look (the GeoKuk theme).
+
 What the theme draws from the layers:
 
 | Layer | In the GeoKuk theme |
