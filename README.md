@@ -34,7 +34,8 @@ further settings.
 
 ![Krkonoše at zoom 15: marked routes in Obří důl, guideposts, rocks, contour lines every 10 m and hillshading](docs/krkonose-z15.png)
 
-Map data © OpenStreetMap contributors, elevation data and contours Zdroj: ČÚZK.
+Map data © OpenStreetMap contributors (ODbL). Elevation data and contours in the Czech Republic: Zdroj: ČÚZK (CC BY 4.0);
+outside the Czech Republic: Copernicus DEM GLO-30 © DLR/Airbus, ESA (see Sources and licences).
 
 The screenshots show GeoKuk offline maps made from OpenStreetMap data: the base map with GeoKuk's own
 layers (tourist, contour lines and hillshading) in GeoKuk's own look (the GeoKuk theme).
