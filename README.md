@@ -32,7 +32,7 @@ further settings.
 
 ![Krkonoše at zoom 13: base map, tourist layer, contour lines and hillshading](docs/krkonose-z13.png)
 
-![Krkonoše at zoom 15: names of official hiking routes, guideposts, rocks and contour lines every 10 m](docs/krkonose-z15.png)
+![Krkonoše at zoom 15: marked routes in Obří důl, guideposts, rocks, contour lines every 10 m and hillshading](docs/krkonose-z15.png)
 
 Map data © OpenStreetMap contributors, elevation data and contours Zdroj: ČÚZK.
 
