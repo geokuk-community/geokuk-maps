@@ -23,6 +23,34 @@ The layers are ordinary Mapsforge files, so other Mapsforge-based apps can use t
 
 Base maps are not hosted here. Download them from download.mapsforge.org or its mirrors.
 
+## How GeoKuk draws the layers
+
+GeoKuk draws an offline map with its built-in **GeoKuk** theme: a clear outdoor map for orientation
+in the terrain, designed for these layers. In **Maps → Map management** a layer is downloaded next to
+its base map, and GeoKuk then draws the base map and all of its downloaded layers together, without
+further settings.
+
+![Krkonoše at zoom 13: base map, tourist layer, contour lines and hillshading](docs/krkonose-z13.png)
+
+![Krkonoše at zoom 15: marked routes in Obří důl, guideposts, rocks, contour lines every 10 m and hillshading](docs/krkonose-z15.png)
+
+Map data © OpenStreetMap contributors (ODbL). Elevation data and contours in the Czech Republic: Zdroj: ČÚZK (CC BY 4.0);
+outside the Czech Republic: Copernicus DEM GLO-30 © DLR/Airbus, ESA (see Sources and licences).
+
+The screenshots show GeoKuk offline maps made from OpenStreetMap data: the base map with GeoKuk's own
+layers (tourist, contour lines and hillshading) in GeoKuk's own look (the GeoKuk theme).
+
+What the theme draws from the layers:
+
+| Layer | In the GeoKuk theme |
+|---|---|
+| Tourist | Marked hiking routes in their trail colours, cycling and MTB routes, names of official hiking routes along the line (from zoom 15); viewpoints (from zoom 13), waterfalls, rocks and stones (from zoom 14), cliffs, guideposts, wayside crosses and shrines (from zoom 15) |
+| Contours | Contour lines every 100 m from zoom 12, every 50 m from zoom 13, every 10 m from zoom 15, elevation labels from zoom 17 |
+| Elevation | Hillshading from zoom 9 to 17 |
+
+The tourist layer carries more features than the GeoKuk theme draws (ski and horse routes, information boards,
+solitary trees, hunting stands, shelters, path difficulty and others). Other Mapsforge themes can use them.
+
 ## Download
 
 Each generation is published as a release tagged `layers-YYYY-MM`. Asset names use `_` instead of `/`,
@@ -66,4 +94,6 @@ The scripts and workflows in this repository are licensed under GPL-3.0-or-later
 Vrstvy k offline mapám programu GeoKuk: turistické a cyklotrasy s body pro orientaci v terénu, vrstevnice a výšková data pro
 stínování terénu. Každá vrstva patří k jedné mapě z download.mapsforge.org a má stejný název.
 GeoKuk je stahuje sám v okně **Mapy → Správa map**. Ručně stažené soubory patří do složky `layers/`
-se stejnou strukturou podsložek, jakou mají mapy.
+se stejnou strukturou podsložek, jakou mají mapy. GeoKuk je kreslí vestavěným tématem **GeoKuk**
+(přehledná turistická mapa): značené trasy v barvách značení s názvy oficiálních tras, skály,
+vyhlídky, rozcestníky, kříže, vodopády, vrstevnice po 10 m a stínování terénu.
