@@ -4,7 +4,7 @@ Usage: region-polygon.py region.osm.pbf geofabrik.poly output.poly [work_dir]
 The Geofabrik .poly (buffered) only tells which administrative units belong to the region: the units of one admin_level (2..6)
 that lie mostly inside it are united. When no level covers the Geofabrik polygon, the Geofabrik .poly is written instead.
 Requires osmium and shapely."""
-import json, os, re, subprocess, sys, tempfile
+import json, os, subprocess, sys, tempfile
 import shapely
 from shapely.geometry import shape
 from shapely.ops import unary_union
