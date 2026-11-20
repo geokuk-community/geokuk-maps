@@ -7,6 +7,14 @@ updates:
     groups:
       python-dependencies:
         patterns: ["*"]
+    # pyhgtmap (contour lines) does not work with the next major versions of these packages.
+    ignore:
+      - dependency-name: numpy
+        update-types: ["version-update:semver-major"]
+      - dependency-name: scipy
+        update-types: ["version-update:semver-major"]
+      - dependency-name: python-dateutil
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
