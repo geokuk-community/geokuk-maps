@@ -67,7 +67,8 @@ using the same folder structure as the base maps.
 
 **Tourist** – © OpenStreetMap contributors, data available under the
 [Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/).
-Extracts from [Geofabrik](https://download.geofabrik.de/).
+Extracts from [Geofabrik](https://download.geofabrik.de/). The region outlines in `mapping/poly` are those of the mapsforge
+base maps (`maps/poly` on download.mapsforge.org, read from the mirror of Hochschule Esslingen; refresh with `scripts/update-poly.sh`).
 
 **Czech Republic elevation data and contours** – Zdroj: ČÚZK, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) (Digital Terrain Model of the Czech Republic 4th generation, DMR 4G), completed from Copernicus outside the country.
 

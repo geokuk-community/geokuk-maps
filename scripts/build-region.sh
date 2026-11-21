@@ -20,9 +20,9 @@ export GEOFABRIK
 [[ "$REGION" =~ ^[a-z0-9-]+(/[a-z0-9-]+)*$ ]] || { echo "Invalid REGION: $REGION" >&2; exit 2; }
 export BASE=${REGION//\//_}
 mkdir -p "$OUT" "$WORK/$BASE"
-curl -fsSL --retry 15 --retry-all-errors --retry-delay 30 --connect-timeout 30 -o "$OUT/$BASE.poly" "https://download.geofabrik.de/${GEOFABRIK}.poly" \
-  || { echo "Geofabrik path ${GEOFABRIK} not found (https://download.geofabrik.de/${GEOFABRIK}.poly)" >&2; exit 1; }
-export BBOX=$(python3 "$D/region-info.py" "$OUT/$BASE.poly")
+"$D/region-poly.sh" "$REGION" "$OUT/$BASE.poly"
+BBOX=$(python3 "$D/region-info.py" "$OUT/$BASE.poly")
+export BBOX
 export PART_SUFFIX=""
 if [ -n "$PARTSPEC" ]; then
   IFS=/ read -r part total axis <<< "$PARTSPEC"
@@ -39,7 +39,7 @@ echo "Region $REGION, name $NAME, bbox $BBOX"
 export WORK="$WORK/$BASE"
 if [ "$TYPES" = all ] || [ "$TYPES" = tourist ]; then
   "$D/build-tourist.sh"
-  rm -rf "$WORK"/*
+  rm -rf "${WORK:?}"/*
 fi
 if [ "$TYPES" = all ] || [ "$TYPES" = dem ] || [ "$TYPES" = contours ] || [ "$TYPES" = dem+contours ]; then
   "$D/build-dem.sh"
