@@ -36,9 +36,9 @@ on:
         description: "Publish the artifacts of this earlier run (run id) without building; use with publish=draft or release"
         default: ""
       osm_source:
-        description: "OSM data for the tourist layer and the border: aws = regions cut from the weekly planet (AWS Open Data), geofabrik = Geofabrik extracts"
+        description: "OSM data for the tourist layer and the border: aws = regions cut from the weekly planet (AWS Open Data), geofabrik = Geofabrik extracts, sample = the small extracts in tests/osm (pull request checks)"
         type: choice
-        options: [aws, geofabrik]
+        options: [aws, geofabrik, sample]
         default: aws
       planet:
         description: "Planet for osm_source=aws, planet-YYMMDD; default the newest with an .md5"
@@ -71,7 +71,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: list
         env:
-          REGIONS: ${{ inputs.regions || 'europe/luxembourg' }}
+          # A pull request builds Monaco, whose OSM sample is kept in tests/osm (and whose dem and contours are kept, dem-manifest.json).
+          REGIONS: ${{ inputs.regions || 'europe/monaco' }}
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os, re
@@ -84,16 +85,31 @@ jobs:
           # Regions built whole (not in parts): only these have a tourist layer.
           print('whole=' + json.dumps(sorted({r for r in regions if ':' not in r})))
           PY
-      # A pull request keeps Geofabrik, so that its checks do not read the whole planet.
+      # A pull request uses the OSM samples in tests/osm, so that its checks need neither the whole planet nor Geofabrik;
+      # it falls back to Geofabrik while a sample is missing.
       - id: osm
         env:
-          OSM_SOURCE: ${{ inputs.osm_source || 'geofabrik' }}
+          OSM_SOURCE: ${{ inputs.osm_source || 'sample' }}
+          EVENT: ${{ github.event_name }}
           PLANET: ${{ inputs.planet }}
           REGIONS: ${{ steps.list.outputs.borders }}
           SKIP: ${{ contains(fromJSON('["finalize", "check"]'), inputs.publish) || inputs.from_run != '' }}
         run: |
-          if [ "$OSM_SOURCE" != aws ] || [ "$SKIP" = true ]; then
+          if [ "$SKIP" = true ] || [ "$OSM_SOURCE" = geofabrik ]; then
             echo "osm=geofabrik" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$OSM_SOURCE" = sample ]; then
+            missing=$(python3 -c 'import json,os; [print(r) for r in json.loads(os.environ["REGIONS"])["region"] if not os.path.isfile("tests/osm/%s.osm.pbf" % r.split("=")[0].replace("/", "_"))]')
+            if [ -z "$missing" ]; then
+              echo "osm=sample" >> "$GITHUB_OUTPUT"
+            elif [ "$EVENT" = pull_request ]; then
+              echo "::warning::No OSM sample in tests/osm for: $missing; using Geofabrik"
+              echo "osm=geofabrik" >> "$GITHUB_OUTPUT"
+            else
+              echo "No OSM sample in tests/osm for: $missing (workflow OSM test sample)" >&2
+              exit 1
+            fi
             exit 0
           fi
           planet=$(python3 scripts/planet-latest.py "$PLANET")
@@ -186,7 +202,7 @@ jobs:
   # The region border for dem and contours and, with osm_source=aws, the OSM extract of the region cut from its planet block.
   border:
     needs: [plan, planet]
-    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.planet.result != 'cancelled' && !contains(fromJSON('["finalize", "check"]'), inputs.publish) && inputs.from_run == '' && (contains(fromJSON('["all", "dem", "contours", ""]'), inputs.types) || needs.plan.outputs.osm == 'aws') }}
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.planet.result != 'cancelled' && !contains(fromJSON('["finalize", "check"]'), inputs.publish) && inputs.from_run == '' && (contains(fromJSON('["all", "dem", "contours", ""]'), inputs.types) || needs.plan.outputs.osm != 'geofabrik') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     strategy:
@@ -197,7 +213,7 @@ jobs:
       REGION: ${{ matrix.region }}
       OSM: ${{ needs.plan.outputs.osm }}
       NEED_BORDER: ${{ contains(fromJSON('["all", "dem", "contours", ""]'), inputs.types) }}
-      NEED_OSM: ${{ needs.plan.outputs.osm == 'aws' && contains(fromJSON('["all", "tourist", ""]'), inputs.types) && contains(fromJSON(needs.plan.outputs.whole), matrix.region) }}
+      NEED_OSM: ${{ needs.plan.outputs.osm != 'geofabrik' && contains(fromJSON('["all", "tourist", ""]'), inputs.types) && contains(fromJSON(needs.plan.outputs.whole), matrix.region) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -234,12 +250,20 @@ jobs:
           cp block/planet.txt osm/
           rm -rf block
           ls -l osm
+      - name: OSM sample
+        if: ${{ env.OSM == 'sample' }}
+        run: |
+          KEY=${REGION%%=*}
+          mkdir -p osm
+          cp "tests/osm/${KEY//\//_}.osm.pbf" osm/region.osm.pbf
+          cp "tests/osm/${KEY//\//_}.txt" osm/planet.txt
+          ls -l osm
       - name: Border
         if: ${{ env.NEED_BORDER == 'true' }}
         run: |
           KEY=${REGION%%=*}
           export GEOFABRIK=${REGION#*=} BASE=${KEY//\//_} OUT="$PWD/out" WORK="$PWD/work"
-          [ "$OSM" = aws ] && export OSM_PBF="$PWD/osm/region.osm.pbf"
+          [ "$OSM" != geofabrik ] && export OSM_PBF="$PWD/osm/region.osm.pbf"
           mkdir -p out work
           scripts/build-border.sh "$OUT/border.poly"
       - name: Summary
@@ -321,9 +345,9 @@ jobs:
         with:
           name: ${{ env.BORDER_NAME }}
           path: border
-      # The OSM extract of the region (osm_source=aws); without it the tourist layer fails instead of falling back to Geofabrik.
+      # The OSM extract of the region (osm_source=aws or sample); without it the tourist layer fails instead of falling back to Geofabrik.
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        if: ${{ env.OSM == 'aws' && !contains(matrix.region, ':') && contains(fromJSON('["all", "tourist"]'), env.TYPES) }}
+        if: ${{ env.OSM != 'geofabrik' && !contains(matrix.region, ':') && contains(fromJSON('["all", "tourist"]'), env.TYPES) }}
         continue-on-error: true
         with:
           name: ${{ env.OSM_NAME }}
@@ -331,7 +355,7 @@ jobs:
       - name: Build
         run: |
           [ -s border/border.poly ] && export BORDER_POLY="$PWD/border/border.poly"
-          if [ "$OSM" = aws ]; then
+          if [ "$OSM" != geofabrik ]; then
             export OSM_PBF="$PWD/osm/region.osm.pbf"
             IFS=$'\t' read -r OSM_PLANET OSM_STAMP < osm/planet.txt || true
             export OSM_PLANET OSM_STAMP
