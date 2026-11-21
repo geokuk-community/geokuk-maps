@@ -2,6 +2,8 @@
 """Assigns regions to the planet blocks of mapping/osm-blocks.json.
 Usage: osm-blocks.py block KEY             prints the block of a region (mapsforge key)
        osm-blocks.py streams KEY [KEY...]  prints the streams that are needed, as a JSON matrix {"include": [{"stream", "blocks"}]}
+       osm-blocks.py slices KEY [KEY...]   prints the split jobs, as a JSON matrix {"include": [{"slice", "block", "regions"}]}: the regions of
+                                           each block in slices of at most SLICE_SIZE, so that a block is downloaded once per slice
        osm-blocks.py config BLOCK [...]    prints the osmium extract config of the blocks (output BLOCK.osm.pbf)
        osm-blocks.py check                 checks that every outline in mapping/poly has a block and that the streams are consistent
 A region goes to the smallest block (by area) that contains the bbox of mapping/poly/KEY.poly widened by the margin."""
@@ -11,6 +13,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG = os.path.join(ROOT, 'mapping', 'osm-blocks.json')
 POLY = os.path.join(ROOT, 'mapping', 'poly')
 MAX_BLOCKS = 4  # peak RAM of osmium extract on the planet is about 2.4 GB per block (planet-261116), the runner has 16 GB
+SLICE_SIZE = 8  # regions per split job; the job has as many upload steps (.github/workflows/layers.yml, job split)
 
 
 def load():
@@ -58,6 +61,18 @@ def main():
         needed = {block_of(config, k) for k in args}
         include = [{'stream': s, 'blocks': ' '.join(b for b in blocks if b in needed)}
                    for s, blocks in config['streams'].items() if needed & set(blocks)]
+        print(json.dumps({'include': include}))
+    elif command == 'slices':
+        by_block = {}
+        for k in sorted(set(args)):
+            by_block.setdefault(block_of(config, k), []).append(k)
+        include = []
+        for block in config['blocks']:
+            keys = by_block.get(block, [])
+            n = -(-len(keys) // SLICE_SIZE)
+            for i in range(n):
+                # Round robin, so that the slices of a block are of similar size and a country and its parts are spread.
+                include.append({'slice': '%s-%d' % (block, i + 1), 'block': block, 'regions': ' '.join(keys[i::n])})
         print(json.dumps({'include': include}))
     elif command == 'config':
         extracts = []
