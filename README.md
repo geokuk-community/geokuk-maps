@@ -76,6 +76,7 @@ No workflow is scheduled yet; the frequencies below are suggestions for after ea
 | Region outlines (`poly.yml`) | Refreshes `mapping/poly` with `scripts/update-poly.sh`, one file at a time | `keys` (empty = all) | `https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/poly/<key>.poly` | Pull request from `update/poly` | Monthly | 2026-11-21, [run](https://github.com/geokuk-community/geokuk-maps/actions/runs/44846667809): 132 outlines unchanged, 5 min |
 | Copernicus tile list (`tilelist.yml`) | Refreshes `mapping/copernicus-tilelist.txt` with `scripts/update-tilelist.sh` (one download) | – | `https://copernicus-dem-30m.s3.amazonaws.com/tileList.txt` | Pull request from `update/tilelist` | Quarterly (the data set dates from 2022) | 2026-11-21, [run](https://github.com/geokuk-community/geokuk-maps/actions/runs/44846671252): unchanged |
 | DEM manifest (`dem-manifest.yml`) | Records in `mapping/dem-manifest.json` the release of the dem and contours of every region of a release's `layers.json`, with the fingerprint of their sources (`scripts/dem-source.py update`) | `tag` (default the latest release) | `layers.json` of the release; `mapping/copernicus-tilelist.txt`, `mapping/poly`; ČÚZK DMR 4G ATOM feed `https://atom.cuzk.gov.cz/DMR4G-SJTSK/DMR4G-SJTSK.xml` (Czech Republic, read once) | Pull request from `update/dem-manifest` | After each finalized release | 2026-11-21, [run](https://github.com/geokuk-community/geokuk-maps/actions/runs/44846674537) with `layers-2026-10f`: opened #22 (adds the ČÚZK fingerprint of the Czech Republic) |
+| OSM test sample (`osm-sample.yml`) | Copies the region extracts `osm-<region>` of a Layers run with `osm_source=aws` into `tests/osm` (each below 5 MB), which the pull request checks of Layers use (`osm_source=sample`, region `europe/monaco`) instead of Geofabrik | `from_run` (Layers run id), `regions` (default `europe/monaco`) | Artifacts of that run (cut from the OSM planet on AWS Open Data) | Pull request from `update/osm-sample` | After a planet run, when the samples are older than a few months | Not run yet |
 
 Data kept in the repository:
 
@@ -84,6 +85,7 @@ Data kept in the repository:
 | `mapping/poly/<key>.poly` | mapsforge polygons, `maps/poly/<key>.poly` on the mirror of Hochschule Esslingen | Region outlines | Monthly |
 | `mapping/osm-blocks.json` | Written in this repository: planet blocks and streams (`scripts/osm-blocks.py check` verifies that every region has a block) | – | When regions are added |
 | `mapping/*.xml` | Written in this repository (tag mappings) | – | – |
+| `tests/osm/<region>.osm.pbf`, `.txt` | OSM extract of the region cut from the weekly planet (AWS Open Data), with the planet name and date; used by the pull request checks | OSM test sample | A few times a year |
 | `mapping/copernicus-tilelist.txt` | `https://copernicus-dem-30m.s3.amazonaws.com/tileList.txt` | Copernicus tile list | Quarterly |
 | `mapping/dem-manifest.json` | Release of the dem and contours of each region and the fingerprint of their sources; Layers keeps them when the fingerprint is unchanged (`dem_reuse=changed`) | DEM manifest | After each finalized release |
 
