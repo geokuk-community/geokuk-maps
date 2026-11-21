@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds the selected layers of one region and its catalog fragment.
 # Env: REGION = mapsforge key, optionally key=geofabrik/path when the Geofabrik path differs and/or key:part/total[/lat|/lon] to build
-# one part of the dem and contours layers (the tourist layer is not split), TAG (release tag, default layers-YYYY-MM), TYPES (all|tourist|dem|contours), OUT, WORK; optional PARALLEL, WRITER_TYPE, JAVA_OPTS.
+# one part of the dem and contours layers (the tourist layer is not split), TAG (release tag, default layers-YYYY-MM), TYPES (all|tourist|dem|contours), OUT, WORK; optional DEM_REUSE (changed|all), PARALLEL, WRITER_TYPE, JAVA_OPTS.
 set -euo pipefail
 : "${REGION:?}" "${OUT:?}" "${WORK:?}"
 D=$(cd "$(dirname "$0")" && pwd)
@@ -33,6 +33,12 @@ if [ -n "$PARTSPEC" ]; then
 fi
 # DMR 4G (bare ground) replaces the Copernicus surface model in the Czech Republic.
 [ "$REGION" = europe/czech-republic ] && export DEM_CUZK=1
+# Dem and contours stay in the previous release when their sources have not changed (mapping/dem-manifest.json, dem-source.py);
+# DEM_REUSE=all builds them anyway (for example after a change of the processing).
+[[ "${DEM_REUSE:-changed}" =~ ^(changed|all)$ ]] || { echo "Invalid DEM_REUSE: $DEM_REUSE" >&2; exit 2; }
+if [ "${DEM_REUSE:-changed}" = changed ] && [ "$TYPES" != tourist ] && python3 "$D/dem-source.py" reuse "$REGION"; then
+  if [ "$TYPES" = all ]; then TYPES=tourist; else TYPES=none; fi
+fi
 last=${REGION##*/}
 NAME=$(python3 -c 'import sys; print(sys.argv[1].replace("-"," ").title())' "$last")
 echo "Region $REGION, name $NAME, bbox $BBOX"
@@ -50,4 +56,6 @@ if [ "$TYPES" = all ] || [ "$TYPES" = dem ] || [ "$TYPES" = contours ] || [ "$TY
     rm -f "$OUT/$BASE.dem$PART_SUFFIX.zip" "$OUT/$BASE.dem$PART_SUFFIX.meta.json"
   fi
 fi
+# Nothing to build: the catalog fragment stays empty and the outline is not published again.
+[ "$TYPES" = none ] && rm -f "$OUT/$BASE.poly"
 PART_TOTAL=${total:-} python3 "$D/build-catalog.py" "$OUT" "$REGION" "$NAME" "$BBOX" "${TAG:-layers-$(date -u +%Y-%m)}/"

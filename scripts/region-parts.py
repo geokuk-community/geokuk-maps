@@ -3,14 +3,16 @@
 Usage: region-parts.py south,west,north,east part total [lat|lon]
 The region is cut along its longer side (or the given axis) at whole degrees so that every part has about the same number
 of Copernicus tiles that exist (land); the parts do not overlap."""
-import math, re, sys, urllib.request
+import math, os, re, sys
 
-LIST = 'https://copernicus-dem-30m.s3.amazonaws.com/tileList.txt'
+# The Copernicus tile list kept in the repository (scripts/update-tilelist.sh).
+LIST = os.environ.get('COPERNICUS_TILE_LIST') or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                                             'mapping', 'copernicus-tilelist.txt')
 
 
 def tiles(south, west, north, east):
-    with urllib.request.urlopen(LIST, timeout=120) as r:
-        names = r.read().decode().split()
+    with open(LIST, encoding='utf-8') as f:
+        names = f.read().split()
     found = set()
     for n in names:
         m = re.search(r'_([NS])(\d+)_00_([EW])(\d+)_00_DEM$', n)
