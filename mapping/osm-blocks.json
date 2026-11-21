@@ -1,5 +1,5 @@
 {
-  "comment": "Blocks cut from the OSM planet (osmium extract, simple strategy, bbox [west, south, east, north]) before the regions are cut from them with complete_ways. A region goes to the smallest block that contains the bbox of its outline (mapping/poly) widened by margin degrees. Each stream reads the planet once and writes its blocks; keep a stream at no more than 4 blocks (measured on planet-261116: 7.2 GB peak RAM for 3 blocks, about 2.4 GB per block, on a 16 GB runner).",
+  "comment": "Blocks cut from the OSM planet (osmium extract, simple strategy, bbox [west, south, east, north]) before the regions are cut from them (smart strategy). A block must also hold the large areas that reach beyond its regions (the egypt block covers the desert areas shared with Libya and Sudan). A region goes to the smallest block that contains the bbox of its outline (mapping/poly) widened by margin degrees. Each stream reads the planet once and writes its blocks; keep a stream at no more than 4 blocks (measured on planet-261116: 7.2 GB peak RAM for 3 blocks, about 2.4 GB per block, on a 16 GB runner).",
   "margin": 0.3,
   "streams": {
     "west": ["iberia", "france"],
@@ -10,7 +10,7 @@
   "blocks": {
     "iberia": [-32.0, 26.0, 5.5, 44.5],
     "france": [-7.3, 40.9, 10.9, 52.0],
-    "egypt": [24.3, 21.6, 37.5, 32.9],
+    "egypt": [9.0, 15.0, 40.0, 34.0],
     "antilles": [-62.5, 13.8, -60.1, 17.2],
     "guyane": [-55.0, 1.7, -50.5, 6.7],
     "indian-ocean": [44.3, -22.1, 56.5, -11.8],
