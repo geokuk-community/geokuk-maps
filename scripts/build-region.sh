@@ -31,6 +31,11 @@ if [ -n "$PARTSPEC" ]; then
   [ "$TYPES" = tourist ] && { echo "The tourist layer is not split into parts" >&2; exit 2; }
   [ "$TYPES" = all ] && TYPES=dem+contours
 fi
+# A region in mapping/region-parts.json builds dem and contours only in its parts (key:part/total); as a whole only its tourist layer.
+if [ -z "$PARTSPEC" ] && [ "$TYPES" != tourist ] && [ -n "$(python3 "$D/region-list.py" --parts "$REGION")" ]; then
+  echo "$REGION: dem and contours are built in parts (mapping/region-parts.json), not as a whole"
+  if [ "$TYPES" = all ]; then TYPES=tourist; else TYPES=none; fi
+fi
 # DMR 4G (bare ground) replaces the Copernicus surface model in the Czech Republic.
 [ "$REGION" = europe/czech-republic ] && export DEM_CUZK=1
 # Dem and contours stay in the previous release when their sources have not changed (mapping/dem-manifest.json, dem-source.py);

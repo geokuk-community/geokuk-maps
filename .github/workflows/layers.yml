@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       regions:
-        description: "Geofabrik paths = mapsforge map keys, separated by spaces or commas (europe/luxembourg europe/germany/bayern)"
+        description: "Geofabrik paths = mapsforge map keys, separated by spaces or commas (europe/luxembourg europe/germany/bayern); all = every key in mapping/poly, with the parts of mapping/region-parts.json"
         default: "europe/luxembourg"
       types:
         description: "Layers to build"
@@ -75,8 +75,12 @@ jobs:
           REGIONS: ${{ inputs.regions || 'europe/monaco' }}
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
-          import json, os, re
+          import json, os, re, subprocess
           regions = [r for r in re.split(r'[\s,]+', os.environ['REGIONS']) if r]
+          if 'all' in regions:
+              regions = subprocess.run(['python3', 'scripts/region-list.py'] + regions, check=True, capture_output=True, text=True).stdout.split()
+          if len(set(regions)) > 256:
+              raise SystemExit('%d regions; a job matrix holds at most 256' % len(set(regions)))
           for r in regions:
               if not re.fullmatch(r'[a-z0-9-]+(/[a-z0-9-]+)*(=[a-z0-9-]+(/[a-z0-9-]+)*)?(:[1-9][0-9]*/[1-9][0-9]*(/(lat|lon))?)?', r):
                   raise SystemExit('Invalid region: ' + r)
