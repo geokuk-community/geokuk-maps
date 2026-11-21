@@ -67,6 +67,7 @@ jobs:
       osm: ${{ steps.osm.outputs.osm }}
       planet: ${{ steps.osm.outputs.planet }}
       streams: ${{ steps.osm.outputs.streams }}
+      slices: ${{ steps.osm.outputs.slices }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: list
@@ -119,8 +120,9 @@ jobs:
           planet=$(python3 scripts/planet-latest.py "$PLANET")
           mapfile -t keys < <(python3 -c 'import json,os; [print(r.split("=")[0]) for r in json.loads(os.environ["REGIONS"])["region"]]')
           streams=$(python3 scripts/osm-blocks.py streams "${keys[@]}")
-          echo "Planet $planet, streams $streams"
-          { echo "osm=aws"; echo "planet=$planet"; echo "streams=$streams"; } >> "$GITHUB_OUTPUT"
+          slices=$(python3 scripts/osm-blocks.py slices "${keys[@]}")
+          echo "Planet $planet, streams $streams, slices $slices"
+          { echo "osm=aws"; echo "planet=$planet"; echo "streams=$streams"; echo "slices=$slices"; } >> "$GITHUB_OUTPUT"
 
   planet:
     needs: plan
@@ -203,21 +205,155 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  # The region border for dem and contours and, with osm_source=aws, the OSM extract of the region cut from its planet block.
-  border:
+  # With osm_source=aws: the OSM extracts osm-<region> of all regions, cut from their planet block in slices of at most 8 regions
+  # of one block (scripts/osm-blocks.py slices), so that a block is downloaded once per slice and not once per region.
+  split:
     needs: [plan, planet]
-    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.planet.result != 'cancelled' && !contains(fromJSON('["finalize", "check"]'), inputs.publish) && inputs.from_run == '' && (contains(fromJSON('["all", "dem", "contours", ""]'), inputs.types) || needs.plan.outputs.osm != 'geofabrik') }}
+    if: ${{ !cancelled() && needs.plan.outputs.osm == 'aws' && needs.planet.result != 'cancelled' && !contains(fromJSON('["finalize", "check"]'), inputs.publish) && inputs.from_run == '' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     strategy:
       fail-fast: false
-      max-parallel: 6
+      max-parallel: 10
+      matrix: ${{ fromJSON(needs.plan.outputs.slices) }}
+    env:
+      BLOCK: ${{ matrix.block }}
+      REGIONS: ${{ matrix.regions }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq osmium-tool
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: osm-block-${{ matrix.block }}
+          path: block
+      - name: OSM extracts
+        id: split
+        run: |
+          read -ra keys <<< "$REGIONS"
+          [ ${#keys[@]} -le 8 ] || { echo "More than 8 regions in a slice" >&2; exit 1; }
+          ( while sleep 60; do echo "resources: $(free -m | sed -n 2p) | disk: $(df -m / | tail -1 | tr -s " " | cut -d" " -f3,4) MB"; done ) &
+          monitor=$!
+          OUT="$PWD/out" WORK="$PWD/work" scripts/osm-split.sh "block/$BLOCK.osm.pbf" osm "${keys[@]}"
+          kill "$monitor" 2>/dev/null || true
+          for i in "${!keys[@]}"; do
+            base=${keys[$i]//\//_}
+            cp block/planet.txt "osm/$base/"
+            echo "r$((i + 1))=$base" >> "$GITHUB_OUTPUT"
+          done
+          rm -rf block
+      - name: Summary
+        if: ${{ always() }}
+        run: |
+          {
+            echo "### Block $BLOCK: $REGIONS"
+            echo '| step | time [s] | RAM [MB] | rc |'
+            echo '|---|---|---|---|'
+            [ -f out/measurements.tsv ] && awk -F'\t' '{printf "| %s | %s | %s | %s |\n",$1,$2,$3,$4}' out/measurements.tsv
+            echo
+            ls -l osm/*/region.osm.pbf 2>/dev/null || true
+            df -h / | tail -1
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+      # One artifact per region, as the build job downloads only its region; a slice has at most 8 regions (osm-blocks.py SLICE_SIZE).
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ steps.split.outputs.r1 != '' }}
+        with:
+          name: osm-${{ steps.split.outputs.r1 }}
+          path: |
+            osm/${{ steps.split.outputs.r1 }}/region.osm.pbf
+            osm/${{ steps.split.outputs.r1 }}/planet.txt
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ steps.split.outputs.r2 != '' }}
+        with:
+          name: osm-${{ steps.split.outputs.r2 }}
+          path: |
+            osm/${{ steps.split.outputs.r2 }}/region.osm.pbf
+            osm/${{ steps.split.outputs.r2 }}/planet.txt
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ steps.split.outputs.r3 != '' }}
+        with:
+          name: osm-${{ steps.split.outputs.r3 }}
+          path: |
+            osm/${{ steps.split.outputs.r3 }}/region.osm.pbf
+            osm/${{ steps.split.outputs.r3 }}/planet.txt
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ steps.split.outputs.r4 != '' }}
+        with:
+          name: osm-${{ steps.split.outputs.r4 }}
+          path: |
+            osm/${{ steps.split.outputs.r4 }}/region.osm.pbf
+            osm/${{ steps.split.outputs.r4 }}/planet.txt
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ steps.split.outputs.r5 != '' }}
+        with:
+          name: osm-${{ steps.split.outputs.r5 }}
+          path: |
+            osm/${{ steps.split.outputs.r5 }}/region.osm.pbf
+            osm/${{ steps.split.outputs.r5 }}/planet.txt
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ steps.split.outputs.r6 != '' }}
+        with:
+          name: osm-${{ steps.split.outputs.r6 }}
+          path: |
+            osm/${{ steps.split.outputs.r6 }}/region.osm.pbf
+            osm/${{ steps.split.outputs.r6 }}/planet.txt
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ steps.split.outputs.r7 != '' }}
+        with:
+          name: osm-${{ steps.split.outputs.r7 }}
+          path: |
+            osm/${{ steps.split.outputs.r7 }}/region.osm.pbf
+            osm/${{ steps.split.outputs.r7 }}/planet.txt
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ steps.split.outputs.r8 != '' }}
+        with:
+          name: osm-${{ steps.split.outputs.r8 }}
+          path: |
+            osm/${{ steps.split.outputs.r8 }}/region.osm.pbf
+            osm/${{ steps.split.outputs.r8 }}/planet.txt
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+
+  # The region border for dem and contours (from the OSM extract of the region with osm_source=aws or sample) and, with osm_source=sample,
+  # the OSM extract of the region for the build job.
+  border:
+    needs: [plan, split]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.split.result != 'cancelled' && !contains(fromJSON('["finalize", "check"]'), inputs.publish) && inputs.from_run == '' && (contains(fromJSON('["all", "dem", "contours", ""]'), inputs.types) || needs.plan.outputs.osm == 'sample') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 10
       matrix: ${{ fromJSON(needs.plan.outputs.borders) }}
     env:
       REGION: ${{ matrix.region }}
       OSM: ${{ needs.plan.outputs.osm }}
       NEED_BORDER: ${{ contains(fromJSON('["all", "dem", "contours", ""]'), inputs.types) }}
-      NEED_OSM: ${{ needs.plan.outputs.osm != 'geofabrik' && contains(fromJSON('["all", "tourist", ""]'), inputs.types) && contains(fromJSON(needs.plan.outputs.whole), matrix.region) }}
+      NEED_OSM: ${{ needs.plan.outputs.osm == 'sample' && contains(fromJSON('["all", "tourist", ""]'), inputs.types) && contains(fromJSON(needs.plan.outputs.whole), matrix.region) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -238,22 +374,12 @@ jobs:
           KEY=${REGION%%=*}
           echo "name=border-${KEY//\//_}" >> "$GITHUB_OUTPUT"
           echo "osm=osm-${KEY//\//_}" >> "$GITHUB_OUTPUT"
-          if [ "$OSM" = aws ]; then echo "block=$(python3 scripts/osm-blocks.py block "$KEY")" >> "$GITHUB_OUTPUT"; fi
+      # The extract cut by the split job (osm_source=aws).
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         if: ${{ env.OSM == 'aws' }}
         with:
-          name: osm-block-${{ steps.art.outputs.block }}
-          path: block
-      - name: OSM extract
-        if: ${{ env.OSM == 'aws' }}
-        env:
-          BLOCK: ${{ steps.art.outputs.block }}
-        run: |
-          mkdir -p out work osm
-          OUT="$PWD/out" WORK="$PWD/work" scripts/osm-region.sh "block/$BLOCK.osm.pbf" "${REGION%%=*}" osm/region.osm.pbf
-          cp block/planet.txt osm/
-          rm -rf block
-          ls -l osm
+          name: ${{ steps.art.outputs.osm }}
+          path: osm
       - name: OSM sample
         if: ${{ env.OSM == 'sample' }}
         run: |
@@ -294,13 +420,13 @@ jobs:
           retention-days: 1
 
   build:
-    needs: [plan, border]
-    if: ${{ !cancelled() && needs.border.result != 'cancelled' && !contains(fromJSON('["finalize", "check"]'), inputs.publish) && inputs.from_run == '' }}
+    needs: [plan, split, border]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.split.result != 'cancelled' && needs.border.result != 'cancelled' && !contains(fromJSON('["finalize", "check"]'), inputs.publish) && inputs.from_run == '' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     strategy:
       fail-fast: false
-      max-parallel: 6
+      max-parallel: 10
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     env:
       REGION: ${{ matrix.region }}
