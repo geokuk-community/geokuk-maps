@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Refreshes the region outlines in mapping/poly/<key>.poly from the mapsforge mirror (maps/poly/<key>.poly), one file at a time.
 # The layers must cover the same area as the mapsforge base map, so the outlines come from mapsforge, not from Geofabrik.
-# Usage: update-poly.sh [key ...]; without keys, all outlines already in mapping/poly are refreshed. Run by hand, then commit the changes.
+# Usage: update-poly.sh [key ...]; without keys, all outlines already in mapping/poly are refreshed.
+# Run by the workflow Region outlines (.github/workflows/poly.yml), which proposes the changes as a pull request.
 # Env: MAPSFORGE_MIRROR (default the Hochschule Esslingen mirror), POLY_DELAY (seconds between downloads, default 2).
 set -euo pipefail
 D=$(cd "$(dirname "$0")" && pwd)

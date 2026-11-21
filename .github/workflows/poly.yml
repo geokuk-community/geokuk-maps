@@ -29,6 +29,7 @@ jobs:
         env:
           KEYS: ${{ inputs.keys }}
         run: |
+          set -o pipefail
           read -ra keys <<< "$KEYS"
           for k in "${keys[@]}"; do [[ "$k" =~ ^[a-z0-9-]+(/[a-z0-9-]+)*$ ]] || { echo "Invalid key: $k" >&2; exit 2; }; done
           rc=0
