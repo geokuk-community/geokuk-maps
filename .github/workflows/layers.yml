@@ -69,6 +69,15 @@ jobs:
       streams: ${{ steps.osm.outputs.streams }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check the expansion of regions=all
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          parts=$(python3 scripts/region-list.py all | grep -c ':')
+          tourist=$(python3 scripts/region-list.py --types tourist all | grep -c ':' || true)
+          dem=$(python3 scripts/region-list.py --types dem all | grep -c ':')
+          echo "parts: types=all $parts, types=tourist $tourist, types=dem $dem"
+          [ "$parts" -gt 0 ] && [ "$tourist" -eq 0 ] && [ "$dem" -eq "$parts" ] \
+            && [ "$(python3 scripts/region-list.py --types tourist europe/norway:1/4)" = europe/norway:1/4 ]
       - id: list
         env:
           # A pull request builds Monaco, whose OSM sample is kept in tests/osm (and whose dem and contours are kept, dem-manifest.json).
@@ -79,11 +88,8 @@ jobs:
           import json, os, re, subprocess
           regions = [r for r in re.split(r'[\s,]+', os.environ['REGIONS']) if r]
           if 'all' in regions:
-              regions = subprocess.run(['python3', 'scripts/region-list.py'] + regions, check=True, capture_output=True, text=True).stdout.split()
-              # The parts of mapping/region-parts.json build only dem and contours: with types=tourist they would have nothing to build
-              # (build-region.sh fails on a part with the tourist layer; run 44886196372, 24 failed jobs).
-              if os.environ['TYPES'] == 'tourist':
-                  regions = [r for r in regions if ':' not in r]
+              # With types=tourist without the parts of mapping/region-parts.json, which build only dem and contours.
+              regions = subprocess.run(['python3', 'scripts/region-list.py', '--types', os.environ['TYPES']] + regions, check=True, capture_output=True, text=True).stdout.split()
           if len(set(regions)) > 256:
               raise SystemExit('%d regions; a job matrix holds at most 256' % len(set(regions)))
           for r in regions:
