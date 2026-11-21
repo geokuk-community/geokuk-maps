@@ -13,7 +13,8 @@ Usage:
   dem-source.py fingerprint KEY         prints the current fingerprint of KEY as JSON
   dem-source.py update layers.json [KEY ...]
                                         records the releases of the dem and contours layers in layers.json with the current
-                                        fingerprints (all regions of layers.json, or the given keys); run by hand after a release
+                                        fingerprints (all regions of layers.json, or the given keys); run by the workflow
+                                        DEM manifest (.github/workflows/dem-manifest.yml) after a release
   dem-source.py check layers.json [tag] fails when a region of the manifest has no dem or contours layer pointing to its release
                                         (or to the release being checked, for a region built again)
 Env: CUZK_ATOM (file with the ATOM feed instead of downloading it)."""

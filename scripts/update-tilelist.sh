@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Refreshes mapping/copernicus-tilelist.txt, the list of Copernicus GLO-30 tiles (AWS Open Data copernicus-dem-30m, tileList.txt),
-# which cop2hgt.py, region-parts.py and dem-source.py read instead of downloading it in every job. Run by hand, then commit the change.
+# which cop2hgt.py, region-parts.py and dem-source.py read instead of downloading it in every job.
+# Run by the workflow Copernicus tile list (.github/workflows/tilelist.yml), which proposes the change as a pull request.
 # The data set has not changed since 2022; a changed list changes the Copernicus fingerprint of the regions it touches (dem-source.py).
 set -euo pipefail
 R=$(cd "$(dirname "$0")/.." && pwd)
