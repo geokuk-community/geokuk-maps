@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
-# Region outline without buffer from the OSM administrative boundaries (region-polygon.py); the Geofabrik .poly when that fails.
-# Usage: build-border.sh output.poly. Env: GEOFABRIK (Geofabrik path), OUT, BASE, WORK.
+# Region outline without buffer from the OSM administrative boundaries (region-polygon.py); the region .poly when that fails.
+# Usage: build-border.sh output.poly. Env: REGION (mapsforge key, optionally key=geofabrik/path), GEOFABRIK (Geofabrik path), OUT, BASE, WORK.
 set -euo pipefail
-: "${GEOFABRIK:?}" "${OUT:?}" "${BASE:?}" "${WORK:?}"
+: "${REGION:?}" "${GEOFABRIK:?}" "${OUT:?}" "${BASE:?}" "${WORK:?}"
 D=$(cd "$(dirname "$0")" && pwd)
 border=$1
 tmp="$WORK/border"
 mkdir -p "$tmp" "$OUT"
-[ -s "$OUT/$BASE.poly" ] || curl -fsSL --retry 15 --retry-all-errors --retry-delay 30 --connect-timeout 30 -o "$OUT/$BASE.poly" "https://download.geofabrik.de/${GEOFABRIK}.poly"
-if "$D/measure.sh" border-pbf curl -fL --retry 5 --retry-delay 10 -o "$tmp/region.osm.pbf" "https://download.geofabrik.de/${GEOFABRIK}-latest.osm.pbf" \
+key=${REGION%%:*}
+[ -s "$OUT/$BASE.poly" ] || "$D/region-poly.sh" "${key%%=*}" "$OUT/$BASE.poly"
+if "$D/geofabrik-pbf.sh" "$GEOFABRIK" "$tmp/region.osm.pbf" border-pbf \
   && "$D/measure.sh" border-polygon python3 "$D/region-polygon.py" "$tmp/region.osm.pbf" "$OUT/$BASE.poly" "$border" "$tmp"; then
   :
 else
-  echo "::warning::Region outline from OSM boundaries failed for $GEOFABRIK, using the Geofabrik polygon"
+  echo "::warning::Region outline from OSM boundaries failed for $GEOFABRIK, using the region polygon"
   cp "$OUT/$BASE.poly" "$border"
 fi
 rm -rf "$tmp"
