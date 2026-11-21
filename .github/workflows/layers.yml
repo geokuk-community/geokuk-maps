@@ -30,6 +30,14 @@ on:
       from_run:
         description: "Publish the artifacts of this earlier run (run id) without building; use with publish=draft or release"
         default: ""
+      osm_source:
+        description: "OSM data for the tourist layer and the border: aws = regions cut from the weekly planet (AWS Open Data), geofabrik = Geofabrik extracts"
+        type: choice
+        options: [aws, geofabrik]
+        default: aws
+      planet:
+        description: "Planet for osm_source=aws, planet-YYMMDD; default the newest with an .md5"
+        default: ""
   pull_request:
     branches: [main]
     paths:
@@ -50,7 +58,12 @@ jobs:
     outputs:
       matrix: ${{ steps.list.outputs.matrix }}
       borders: ${{ steps.list.outputs.borders }}
+      whole: ${{ steps.list.outputs.whole }}
+      osm: ${{ steps.osm.outputs.osm }}
+      planet: ${{ steps.osm.outputs.planet }}
+      streams: ${{ steps.osm.outputs.streams }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: list
         env:
           REGIONS: ${{ inputs.regions || 'europe/luxembourg' }}
@@ -63,18 +76,143 @@ jobs:
                   raise SystemExit('Invalid region: ' + r)
           print('matrix=' + json.dumps({'region': sorted(set(regions))}))
           print('borders=' + json.dumps({'region': sorted({r.split(':')[0] for r in regions})}))
+          # Regions built whole (not in parts): only these have a tourist layer.
+          print('whole=' + json.dumps(sorted({r for r in regions if ':' not in r})))
           PY
+      # A pull request keeps Geofabrik, so that its checks do not read the whole planet.
+      - id: osm
+        env:
+          OSM_SOURCE: ${{ inputs.osm_source || 'geofabrik' }}
+          PLANET: ${{ inputs.planet }}
+          REGIONS: ${{ steps.list.outputs.borders }}
+          SKIP: ${{ contains(fromJSON('["finalize", "check"]'), inputs.publish) || inputs.from_run != '' }}
+        run: |
+          if [ "$OSM_SOURCE" != aws ] || [ "$SKIP" = true ]; then
+            echo "osm=geofabrik" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          planet=$(python3 scripts/planet-latest.py "$PLANET")
+          mapfile -t keys < <(python3 -c 'import json,os; [print(r.split("=")[0]) for r in json.loads(os.environ["REGIONS"])["region"]]')
+          streams=$(python3 scripts/osm-blocks.py streams "${keys[@]}")
+          echo "Planet $planet, streams $streams"
+          { echo "osm=aws"; echo "planet=$planet"; echo "streams=$streams"; } >> "$GITHUB_OUTPUT"
 
-  border:
+  planet:
     needs: plan
-    if: ${{ !contains(fromJSON('["finalize", "check"]'), inputs.publish) && inputs.from_run == '' && contains(fromJSON('["all", "dem", "contours", ""]'), inputs.types) }}
+    if: ${{ needs.plan.outputs.osm == 'aws' }}
     runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.streams) }}
+    env:
+      PLANET: ${{ needs.plan.outputs.planet }}
+      BLOCKS: ${{ matrix.blocks }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq osmium-tool
+          aws --version || true
+      - name: Blocks
+        id: blocks
+        run: |
+          read -ra blocks <<< "$BLOCKS"
+          [ ${#blocks[@]} -le 6 ] || { echo "More than 6 blocks in a stream" >&2; exit 1; }
+          for i in "${!blocks[@]}"; do echo "b$((i + 1))=${blocks[$i]}" >> "$GITHUB_OUTPUT"; done
+          ( while sleep 60; do echo "resources: $(free -m | sed -n 2p) | disk: $(df -m / | tail -1 | tr -s " " | cut -d" " -f3,4) MB | blocks: $(du -sm blocks 2>/dev/null | cut -f1) MB"; done ) &
+          monitor=$!
+          OUT="$PWD/out" scripts/osm-planet.sh "$PLANET" "$PWD/blocks" "${blocks[@]}"
+          kill "$monitor" 2>/dev/null || true
+      - name: Summary
+        if: ${{ always() }}
+        run: |
+          {
+            echo "### Planet $PLANET, blocks $BLOCKS"
+            echo '| step | time [s] | RAM [MB] | rc |'
+            echo '|---|---|---|---|'
+            [ -f out/measurements.tsv ] && awk -F'\t' '{printf "| %s | %s | %s | %s |\n",$1,$2,$3,$4}' out/measurements.tsv
+            echo
+            ls -l blocks
+            df -h / | tail -1
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+      # One artifact per block, so that each region job downloads only its block; a stream has at most 6 blocks.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: osm-block-${{ steps.blocks.outputs.b1 }}
+          path: |
+            blocks/${{ steps.blocks.outputs.b1 }}.osm.pbf
+            blocks/planet.txt
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ steps.blocks.outputs.b2 != '' }}
+        with:
+          name: osm-block-${{ steps.blocks.outputs.b2 }}
+          path: |
+            blocks/${{ steps.blocks.outputs.b2 }}.osm.pbf
+            blocks/planet.txt
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ steps.blocks.outputs.b3 != '' }}
+        with:
+          name: osm-block-${{ steps.blocks.outputs.b3 }}
+          path: |
+            blocks/${{ steps.blocks.outputs.b3 }}.osm.pbf
+            blocks/planet.txt
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ steps.blocks.outputs.b4 != '' }}
+        with:
+          name: osm-block-${{ steps.blocks.outputs.b4 }}
+          path: |
+            blocks/${{ steps.blocks.outputs.b4 }}.osm.pbf
+            blocks/planet.txt
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ steps.blocks.outputs.b5 != '' }}
+        with:
+          name: osm-block-${{ steps.blocks.outputs.b5 }}
+          path: |
+            blocks/${{ steps.blocks.outputs.b5 }}.osm.pbf
+            blocks/planet.txt
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ steps.blocks.outputs.b6 != '' }}
+        with:
+          name: osm-block-${{ steps.blocks.outputs.b6 }}
+          path: |
+            blocks/${{ steps.blocks.outputs.b6 }}.osm.pbf
+            blocks/planet.txt
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+
+  # The region border for dem and contours and, with osm_source=aws, the OSM extract of the region cut from its planet block.
+  border:
+    needs: [plan, planet]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.planet.result != 'cancelled' && !contains(fromJSON('["finalize", "check"]'), inputs.publish) && inputs.from_run == '' && (contains(fromJSON('["all", "dem", "contours", ""]'), inputs.types) || needs.plan.outputs.osm == 'aws') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
     strategy:
       fail-fast: false
       max-parallel: 6
       matrix: ${{ fromJSON(needs.plan.outputs.borders) }}
     env:
       REGION: ${{ matrix.region }}
+      OSM: ${{ needs.plan.outputs.osm }}
+      NEED_BORDER: ${{ contains(fromJSON('["all", "dem", "contours", ""]'), inputs.types) }}
+      NEED_OSM: ${{ needs.plan.outputs.osm == 'aws' && contains(fromJSON('["all", "tourist", ""]'), inputs.types) && contains(fromJSON(needs.plan.outputs.whole), matrix.region) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Tools
@@ -86,21 +224,55 @@ jobs:
           # pyhgtmap needs PyDrive2 (imported, not used here), which caps cryptography<44 and would keep cryptography on an old release.
           "$HOME/venv/bin/pip" install -q --no-deps -r scripts/requirements.txt
           echo "$HOME/venv/bin" >> "$GITHUB_PATH"
-      - name: Border
-        run: |
-          KEY=${REGION%%=*}
-          export GEOFABRIK=${REGION#*=} BASE=${KEY//\//_} OUT="$PWD/out" WORK="$PWD/work"
-          mkdir -p out work
-          scripts/build-border.sh "$OUT/border.poly"
-          cat out/measurements.tsv
       - id: art
         run: |
           KEY=${REGION%%=*}
           echo "name=border-${KEY//\//_}" >> "$GITHUB_OUTPUT"
+          echo "osm=osm-${KEY//\//_}" >> "$GITHUB_OUTPUT"
+          if [ "$OSM" = aws ]; then echo "block=$(python3 scripts/osm-blocks.py block "$KEY")" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: ${{ env.OSM == 'aws' }}
+        with:
+          name: osm-block-${{ steps.art.outputs.block }}
+          path: block
+      - name: OSM extract
+        if: ${{ env.OSM == 'aws' }}
+        env:
+          BLOCK: ${{ steps.art.outputs.block }}
+        run: |
+          mkdir -p out work osm
+          OUT="$PWD/out" WORK="$PWD/work" scripts/osm-region.sh "block/$BLOCK.osm.pbf" "${REGION%%=*}" osm/region.osm.pbf
+          cp block/planet.txt osm/
+          rm -rf block
+          ls -l osm
+      - name: Border
+        if: ${{ env.NEED_BORDER == 'true' }}
+        run: |
+          KEY=${REGION%%=*}
+          export GEOFABRIK=${REGION#*=} BASE=${KEY//\//_} OUT="$PWD/out" WORK="$PWD/work"
+          [ "$OSM" = aws ] && export OSM_PBF="$PWD/osm/region.osm.pbf"
+          mkdir -p out work
+          scripts/build-border.sh "$OUT/border.poly"
+      - name: Summary
+        if: ${{ always() }}
+        run: |
+          [ -f out/measurements.tsv ] && cat out/measurements.tsv
+          df -h / | tail -1
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ env.NEED_BORDER == 'true' }}
         with:
           name: ${{ steps.art.outputs.name }}
           path: out/border.poly
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ env.NEED_OSM == 'true' }}
+        with:
+          name: ${{ steps.art.outputs.osm }}
+          path: |
+            osm/region.osm.pbf
+            osm/planet.txt
+          compression-level: 0
           if-no-files-found: error
           retention-days: 1
 
@@ -120,6 +292,7 @@ jobs:
       PARALLEL: ${{ inputs.parallel || '2' }}
       JAVA_OPTS: -Xmx10g
       TAG: ${{ inputs.tag }}
+      OSM: ${{ needs.plan.outputs.osm }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
@@ -137,19 +310,31 @@ jobs:
           echo "$HOME/venv/bin" >> "$GITHUB_PATH"
           scripts/install-tools.sh
       - name: Region border
-        if: ${{ needs.border.result == 'success' }}
         run: |
           KEY=${REGION%%:*}; KEY=${KEY%%=*}
           echo "BORDER_NAME=border-${KEY//\//_}" >> "$GITHUB_ENV"
+          echo "OSM_NAME=osm-${KEY//\//_}" >> "$GITHUB_ENV"
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         if: ${{ needs.border.result == 'success' }}
         continue-on-error: true
         with:
           name: ${{ env.BORDER_NAME }}
           path: border
+      # The OSM extract of the region (osm_source=aws); without it the tourist layer fails instead of falling back to Geofabrik.
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: ${{ env.OSM == 'aws' && !contains(matrix.region, ':') && contains(fromJSON('["all", "tourist"]'), env.TYPES) }}
+        continue-on-error: true
+        with:
+          name: ${{ env.OSM_NAME }}
+          path: osm
       - name: Build
         run: |
           [ -s border/border.poly ] && export BORDER_POLY="$PWD/border/border.poly"
+          if [ "$OSM" = aws ]; then
+            export OSM_PBF="$PWD/osm/region.osm.pbf"
+            IFS=$'\t' read -r OSM_PLANET OSM_STAMP < osm/planet.txt || true
+            export OSM_PLANET OSM_STAMP
+          fi
           OUT="$PWD/out" WORK="$PWD/work" scripts/build-region.sh
       - name: Summary
         if: ${{ always() }}
