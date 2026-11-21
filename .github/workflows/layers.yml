@@ -124,7 +124,7 @@ jobs:
         id: blocks
         run: |
           read -ra blocks <<< "$BLOCKS"
-          [ ${#blocks[@]} -le 6 ] || { echo "More than 6 blocks in a stream" >&2; exit 1; }
+          [ ${#blocks[@]} -le 4 ] || { echo "More than 4 blocks in a stream" >&2; exit 1; }
           for i in "${!blocks[@]}"; do echo "b$((i + 1))=${blocks[$i]}" >> "$GITHUB_OUTPUT"; done
           ( while sleep 60; do echo "resources: $(free -m | sed -n 2p) | disk: $(df -m / | tail -1 | tr -s " " | cut -d" " -f3,4) MB | blocks: $(du -sm blocks 2>/dev/null | cut -f1) MB"; done ) &
           monitor=$!
@@ -142,7 +142,7 @@ jobs:
             ls -l blocks
             df -h / | tail -1
           } | tee -a "$GITHUB_STEP_SUMMARY"
-      # One artifact per block, so that each region job downloads only its block; a stream has at most 6 blocks.
+      # One artifact per block, so that each region job downloads only its block; a stream has at most 4 blocks (osm-blocks.py check).
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: osm-block-${{ steps.blocks.outputs.b1 }}
@@ -178,26 +178,6 @@ jobs:
           name: osm-block-${{ steps.blocks.outputs.b4 }}
           path: |
             blocks/${{ steps.blocks.outputs.b4 }}.osm.pbf
-            blocks/planet.txt
-          compression-level: 0
-          if-no-files-found: error
-          retention-days: 1
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: ${{ steps.blocks.outputs.b5 != '' }}
-        with:
-          name: osm-block-${{ steps.blocks.outputs.b5 }}
-          path: |
-            blocks/${{ steps.blocks.outputs.b5 }}.osm.pbf
-            blocks/planet.txt
-          compression-level: 0
-          if-no-files-found: error
-          retention-days: 1
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: ${{ steps.blocks.outputs.b6 != '' }}
-        with:
-          name: osm-block-${{ steps.blocks.outputs.b6 }}
-          path: |
-            blocks/${{ steps.blocks.outputs.b6 }}.osm.pbf
             blocks/planet.txt
           compression-level: 0
           if-no-files-found: error

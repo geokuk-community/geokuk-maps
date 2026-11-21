@@ -10,6 +10,7 @@ import json, os, re, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG = os.path.join(ROOT, 'mapping', 'osm-blocks.json')
 POLY = os.path.join(ROOT, 'mapping', 'poly')
+MAX_BLOCKS = 4  # peak RAM of osmium extract on the planet is about 2.4 GB per block (planet-261116), the runner has 16 GB
 
 
 def load():
@@ -69,8 +70,8 @@ def main():
         in_streams = [b for blocks in config['streams'].values() for b in blocks]
         if sorted(in_streams) != sorted(config['blocks']):
             sys.exit('Every block must be in exactly one stream')
-        if max(len(b) for b in config['streams'].values()) > 6:
-            sys.exit('A stream has more than 6 blocks')
+        if max(len(b) for b in config['streams'].values()) > MAX_BLOCKS:
+            sys.exit('A stream has more than %d blocks' % MAX_BLOCKS)
         for name, (w, s, e, n) in config['blocks'].items():
             if not (-180 <= w < e <= 180 and -90 <= s < n <= 90):
                 sys.exit('Invalid bbox of block ' + name)
