@@ -12,6 +12,8 @@ ls "$DIR"/*/layers.json > /dev/null 2>&1 || { echo "No built region to publish" 
 R=$(cd "$(dirname "$0")/.." && pwd)
 TAG=${TAG:-layers-$(date -u +%Y-%m)}
 [[ "$TAG" =~ ^layers-[0-9]{4}-[0-9]{2}[a-z0-9-]*$ ]] || { echo "Invalid TAG: $TAG" >&2; exit 2; }
+# The check-draft job of layers.yml verifies the same draft.
+[ -z "${GITHUB_OUTPUT:-}" ] || echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 api() { gh api "$@"; }
 ID=$(api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate --jq ".[]|select(.tag_name==\"$TAG\")|.id" | head -1)
 if [ -z "$ID" ]; then
