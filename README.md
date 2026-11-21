@@ -63,6 +63,24 @@ The catalogue of all files, with sizes, SHA-256 checksums and dates, is always a
 GeoKuk downloads layers through **Maps → Map management** and stores them in its `layers/` folder,
 using the same folder structure as the base maps.
 
+## Workflows and data sources
+
+Every step runs as a GitHub Actions workflow with its inputs; the scripts in `scripts/` are run by these workflows.
+Workflows that refresh data kept in the repository propose the change as a pull request, never by pushing to `main`.
+No workflow is scheduled yet; the frequencies below are suggestions for after each workflow has been verified by one run.
+
+| Workflow | What it does | Inputs | Data sources | Output | Suggested frequency | Verified |
+|---|---|---|---|---|---|---|
+| Layers (`layers.yml`) | Builds the tourist, contours and dem layers of the given regions with their catalogue fragment; publishes them to a draft release, verifies and publishes the draft (`finalize`) or only verifies it (`check`) | `regions`, `types`, `parallel`, `writer`, `publish`, `tag`, `from_run` | OSM extracts from Geofabrik; Copernicus GLO-30 (AWS Open Data `copernicus-dem-30m`); ČÚZK DMR 4G (ATOM service); mapsforge base map headers (mirror of Hochschule Esslingen); `mapping/` | Artifacts `region-*`; draft release `layers-YYYY-MM` with `layers.json` | Monthly cycle: draft, check, finalize | Last full cycle `layers-2026-10f`; since 2026-11-20 Geofabrik refuses connections from GitHub runners |
+| Region outlines (`poly.yml`) | Refreshes `mapping/poly` with `scripts/update-poly.sh`, one file at a time | `keys` (empty = all) | `https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/poly/<key>.poly` | Pull request from `update/poly` | Monthly | Not run yet |
+
+Data kept in the repository:
+
+| File or folder | Source | Workflow | Suggested frequency |
+|---|---|---|---|
+| `mapping/poly/<key>.poly` | mapsforge polygons, `maps/poly/<key>.poly` on the mirror of Hochschule Esslingen | Region outlines | Monthly |
+| `mapping/*.xml` | Written in this repository (tag mappings) | – | – |
+
 ## Sources and licences
 
 **Tourist** – © OpenStreetMap contributors, data available under the
