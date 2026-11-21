@@ -73,12 +73,17 @@ jobs:
         env:
           # A pull request builds Monaco, whose OSM sample is kept in tests/osm (and whose dem and contours are kept, dem-manifest.json).
           REGIONS: ${{ inputs.regions || 'europe/monaco' }}
+          TYPES: ${{ inputs.types || 'all' }}
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os, re, subprocess
           regions = [r for r in re.split(r'[\s,]+', os.environ['REGIONS']) if r]
           if 'all' in regions:
               regions = subprocess.run(['python3', 'scripts/region-list.py'] + regions, check=True, capture_output=True, text=True).stdout.split()
+              # The parts of mapping/region-parts.json build only dem and contours: with types=tourist they would have nothing to build
+              # (build-region.sh fails on a part with the tourist layer; run 44886196372, 24 failed jobs).
+              if os.environ['TYPES'] == 'tourist':
+                  regions = [r for r in regions if ':' not in r]
           if len(set(regions)) > 256:
               raise SystemExit('%d regions; a job matrix holds at most 256' % len(set(regions)))
           for r in regions:
