@@ -83,6 +83,7 @@ Data kept in the repository:
 | File or folder | Source | Workflow | Suggested frequency |
 |---|---|---|---|
 | `mapping/poly/<key>.poly` | mapsforge polygons, `maps/poly/<key>.poly` on the mirror of Hochschule Esslingen | Region outlines | Monthly |
+| `mapping/region-parts.json` | Written in this repository: regions whose dem and contours are built in parts (2 GiB limit of release assets); `regions=all` of Layers adds their parts (`scripts/region-list.py`) | – | When a layer nears 2 GiB |
 | `mapping/osm-blocks.json` | Written in this repository: planet blocks and streams (`scripts/osm-blocks.py check` verifies that every region has a block) | – | When regions are added |
 | `mapping/*.xml` | Written in this repository (tag mappings) | – | – |
 | `tests/osm/<region>.osm.pbf`, `.txt` | OSM extract of the region cut from the weekly planet (AWS Open Data), with the planet name and date; used by the pull request checks | OSM test sample | A few times a year |

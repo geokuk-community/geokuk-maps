@@ -1,0 +1,13 @@
+{
+ "comment": "Regions whose dem and contours are built in parts (region-parts.py cuts the bbox at whole degrees) because one file would reach the 2 GiB limit of release assets. A region listed here builds only its tourist layer as a whole; regions=all adds key:part/total for each part. africa/egypt, europe/norway and europe/turkey as published in layers-2026-10e; the other five have no complete dem and contours yet, their numbers are estimates from area and relief.",
+ "parts": {
+  "africa/egypt": "2",
+  "europe/norway": "4",
+  "europe/turkey": "2",
+  "europe/france": "4",
+  "europe/spain": "4",
+  "europe/italy": "3",
+  "europe/germany": "3",
+  "europe/great-britain": "2"
+ }
+}
