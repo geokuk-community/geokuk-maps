@@ -256,7 +256,7 @@ jobs:
       - name: Summary
         if: ${{ always() }}
         run: |
-          [ -f out/measurements.tsv ] && cat out/measurements.tsv
+          if [ -f out/measurements.tsv ]; then cat out/measurements.tsv; fi
           df -h / | tail -1
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ env.NEED_BORDER == 'true' }}

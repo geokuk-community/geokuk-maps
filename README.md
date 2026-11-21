@@ -71,7 +71,8 @@ No workflow is scheduled yet; the frequencies below are suggestions for after ea
 
 | Workflow | What it does | Inputs | Data sources | Output | Suggested frequency | Verified |
 |---|---|---|---|---|---|---|
-| Layers (`layers.yml`) | Builds the tourist, contours and dem layers of the given regions with their catalogue fragment; publishes them to a draft release, verifies and publishes the draft (`finalize`) or only verifies it (`check`) | `regions`, `types`, `parallel`, `writer`, `publish`, `tag`, `from_run` | OSM extracts from Geofabrik; Copernicus GLO-30 (AWS Open Data `copernicus-dem-30m`); ČÚZK DMR 4G (ATOM service); mapsforge base map headers (mirror of Hochschule Esslingen); `mapping/` | Artifacts `region-*`; draft release `layers-YYYY-MM` with `layers.json` | Monthly cycle: draft, check, finalize | Last full cycle `layers-2026-10f`; since 2026-11-20 Geofabrik refuses connections from GitHub runners |
+| Layers (`layers.yml`) | Builds the tourist, contours and dem layers of the given regions with their catalogue fragment; publishes them to a draft release, verifies and publishes the draft (`finalize`) or only verifies it (`check`) | `regions`, `types`, `parallel`, `writer`, `publish`, `tag`, `from_run` | OSM regions cut from the planet on AWS (`osm_source=aws`, row below) or Geofabrik extracts (`osm_source=geofabrik`); Copernicus GLO-30 (AWS Open Data `copernicus-dem-30m`); ČÚZK DMR 4G (ATOM service); mapsforge base map headers (mirror of Hochschule Esslingen); `mapping/` | Artifacts `region-*`; draft release `layers-YYYY-MM` with `layers.json` | Monthly cycle: draft, check, finalize | Last full cycle `layers-2026-10f`; since 2026-11-20 Geofabrik refuses connections from GitHub runners |
+| Layers: OSM planet blocks (`layers.yml`, jobs `planet` and `border`, with `osm_source=aws`) | Reads the weekly OSM planet once per stream of `mapping/osm-blocks.json`, writes its blocks (checked against the planet's MD5) and cuts each region from its block with its outline (complete_ways) for the tourist layer and the border | `osm_source` (`aws` default, `geofabrik`), `planet` (default the newest), and `regions`, `types` of Layers | OSM planet on AWS Open Data, `s3://osm-planet-eu-central-1/planet/pbf/` (weekly, with `.md5`); `mapping/poly`, `mapping/osm-blocks.json` | Artifacts `osm-block-<block>`, `osm-<region>` (1 day) | With each Layers cycle | Not run yet (pull requests use `geofabrik`) |
 | Region outlines (`poly.yml`) | Refreshes `mapping/poly` with `scripts/update-poly.sh`, one file at a time | `keys` (empty = all) | `https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/poly/<key>.poly` | Pull request from `update/poly` | Monthly | Not run yet |
 
 Data kept in the repository:
@@ -79,6 +80,7 @@ Data kept in the repository:
 | File or folder | Source | Workflow | Suggested frequency |
 |---|---|---|---|
 | `mapping/poly/<key>.poly` | mapsforge polygons, `maps/poly/<key>.poly` on the mirror of Hochschule Esslingen | Region outlines | Monthly |
+| `mapping/osm-blocks.json` | Written in this repository: planet blocks and streams (`scripts/osm-blocks.py check` verifies that every region has a block) | – | When regions are added |
 | `mapping/*.xml` | Written in this repository (tag mappings) | – | – |
 
 ## Sources and licences

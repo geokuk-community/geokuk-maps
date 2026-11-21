@@ -8,6 +8,8 @@ D=$(cd "$(dirname "$0")" && pwd)
 border=$1
 tmp="$WORK/border"
 mkdir -p "$tmp" "$OUT"
+# The workflow prints the measurements even when no step was measured (e.g. the Geofabrik index could not be downloaded).
+touch "$OUT/measurements.tsv"
 key=${REGION%%:*}
 [ -s "$OUT/$BASE.poly" ] || "$D/region-poly.sh" "${key%%=*}" "$OUT/$BASE.poly"
 pbf=${OSM_PBF:-$tmp/region.osm.pbf}
