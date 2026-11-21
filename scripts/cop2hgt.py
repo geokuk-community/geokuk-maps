@@ -16,18 +16,18 @@ def tile_name(lat, lon):
     return '%s%02d' % ('N' if lat >= 0 else 'S', abs(lat)), '%s%03d' % ('E' if lon >= 0 else 'W', abs(lon))
 
 
-LIST = 'https://copernicus-dem-30m.s3.amazonaws.com/tileList.txt'
+# The tile list is kept in the repository (scripts/update-tilelist.sh) instead of being downloaded by every job.
+LIST = os.environ.get('COPERNICUS_TILE_LIST') or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                                             'mapping', 'copernicus-tilelist.txt')
 AVAILABLE = set()
 
 
 def load_tile_list():
-    for attempt in range(5):
-        try:
-            with urllib.request.urlopen(LIST, timeout=120) as r:
-                return {line.strip() for line in r.read().decode().splitlines() if line.strip()}
-        except OSError:
-            time.sleep(2 * (attempt + 1))
-    raise RuntimeError('tile list not available')
+    with open(LIST, encoding='utf-8') as f:
+        names = {line.strip() for line in f if line.strip()}
+    if not names:
+        raise RuntimeError('tile list %s is empty' % LIST)
+    return names
 
 
 SIGMA = 0.7  # smoothing along the longitude in output (1") columns per unit of the coarser source spacing

@@ -11,6 +11,11 @@ on:
         type: choice
         options: [all, tourist, dem, contours]
         default: all
+      dem_reuse:
+        description: "changed = keep dem and contours from the previous release where their sources are unchanged (mapping/dem-manifest.json), all = build them for every region"
+        type: choice
+        options: [changed, all]
+        default: changed
       parallel:
         description: "Concurrent pyhgtmap processes for contours"
         default: "2"
@@ -215,6 +220,10 @@ jobs:
       NEED_OSM: ${{ needs.plan.outputs.osm == 'aws' && contains(fromJSON('["all", "tourist", ""]'), inputs.types) && contains(fromJSON(needs.plan.outputs.whole), matrix.region) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('scripts/requirements.txt') }}
       - name: Tools
         run: |
           sudo apt-get update -qq
@@ -289,6 +298,7 @@ jobs:
       REGION: ${{ matrix.region }}
       TYPES: ${{ inputs.types || 'all' }}
       WRITER_TYPE: ${{ inputs.writer || 'auto' }}
+      DEM_REUSE: ${{ inputs.dem_reuse || 'changed' }}
       PARALLEL: ${{ inputs.parallel || '2' }}
       JAVA_OPTS: -Xmx10g
       TAG: ${{ inputs.tag }}
@@ -299,6 +309,17 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('scripts/requirements.txt') }}
+      # Osmosis and the merged mapsforge-map-writer plugin; install-tools.sh downloads and builds nothing when they are restored.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            tools/osmosis
+            ~/.openstreetmap/osmosis/plugins
+          key: tools-${{ runner.os }}-${{ hashFiles('scripts/install-tools.sh', 'scripts/writer/pom.xml') }}
       - name: Tools
         run: |
           sudo apt-get update -qq

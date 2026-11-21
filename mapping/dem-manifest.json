@@ -1,0 +1,1021 @@
+{
+ "comment": "Release of the dem and contours layers of each region and the fingerprint of their sources when they were built (scripts/dem-source.py). A region whose fingerprint is unchanged keeps its layers; update with: scripts/dem-source.py update layers.json, after a release.",
+ "regions": {
+  "africa/canary-islands": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "d615702361caf44096ef8f3eea2ffebd914ba56eba1e2bc6306243af5851983c",
+    "poly": "79a0494234c9e6d2eef15fe5830a6ba3a5ba36e731c526f5bc99117ae73c9b99"
+   }
+  },
+  "africa/egypt": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "4e36762636abcbfaf67d6b3fe9a43bb0926708cc731f842db04cacb9af2fea98",
+    "poly": "7394c7e097587f370eb876d29a6365557da6d05e2961230ec60c6d6324862997"
+   }
+  },
+  "europe/albania": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "4a0abb8464035f6641af25197ae5a6af9d66068f81e635a8a57d2a13ac38c644",
+    "poly": "2902604dc74bdfcd918a915223ef35541c11f62e54830e3190126be1dade0162"
+   }
+  },
+  "europe/andorra": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "60f5541ae8ca4f2aa372b114c4d4d8a83808d68f27eb4e995172528a3ba22549",
+    "poly": "d875d3c72a180a34620bcd5dc92d31ae27dde8f4f28b14acc6dc249792872e83"
+   }
+  },
+  "europe/austria": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "61bc7f1f465739d3302dbab275c96f9433af2fdb51ad622449170dfae890b632",
+    "poly": "88873792ab48a4cc1a85a9d74ca39ff12c73a0d941b4bf2705cf4be66f546634"
+   }
+  },
+  "europe/azores": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "5fd6e0105915a4d3be409b44cf521b5dbf7b1c4e182e63515ae7d3c71acb772a",
+    "poly": "a0c91dea4656d5ce8c0561aac9c2a16a3f4f32d831b92c8b83b66cf71b98a16a"
+   }
+  },
+  "europe/belarus": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "cadb0b4d27b4775bb04eed05d36ae466957e2dea2c1379708562e5ee55d4c93f",
+    "poly": "426f5d237d2ac7fe48b28b3ad34b7a0949c429fd90801b3b91cf7de31df596d2"
+   }
+  },
+  "europe/belgium": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "ba256c379cca73ae69939ad3905f0f2976a37e8948c5d4a7df1715e2035dec6e",
+    "poly": "67b4b5856f1335c6480ee0869360c5a51c2edb94c838d398047295a73b222bd6"
+   }
+  },
+  "europe/bosnia-herzegovina": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "d676ef35671ba2165b7ffd9deb91074e68f592f701ddbed34fcb3e85aad35992",
+    "poly": "c3e69fbb289a3211d0d981d3b6f25a2422520a4b0d6ed7d22913f222c10168be"
+   }
+  },
+  "europe/bulgaria": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "b7d1ecd4022c0768473e66d05f16ca4825d05ee9447b28085e13f41fdcc3106f",
+    "poly": "3b57c5073e24878406a2572135f845c1f89ac4c5a82d84ee01bdbfd467a4ea90"
+   }
+  },
+  "europe/croatia": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "6df6a203099adf7a2c1ee5e20700e5b7d382dac326dcb1b0abb3117ebdd2185e",
+    "poly": "ea8602553dd37ebcd37098e6b27923cb6a976a8f604f72efff576e7ad565ee6e"
+   }
+  },
+  "europe/cyprus": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "5b86a41a6a9e1fd904c86da34026f3875404c67a1b9ba2e12805e8cb35b39754",
+    "poly": "8e9d7805c8b215172470dbbc5d13d4ec0efdf170018cda503337165d95c9d7b9"
+   }
+  },
+  "europe/czech-republic": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "c0fa8f7fd4aab7dc4d54dc1058e9051a75ca20a62a0ebad1f41428a8100a9aaf",
+    "poly": "9d2fd30678a2bcda35c6d092000b2c4c367fb7a9723a5fb1ad2876d0757575ab"
+   }
+  },
+  "europe/denmark": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "22447faec2fceece8b52ceba093c1f17af85b32c477cf82382e0b0370984cbb2",
+    "poly": "facd4a5671411234ccdb7efc2822cbb5e816d8cb867bc9a52de904c85a99beec"
+   }
+  },
+  "europe/estonia": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "13ec92df637a56f04f420cbe6dcd13b425ca3b3ece5a5530cef74ec3f8984b57",
+    "poly": "b3b3cd600b60c5321b1fd2090ecd3266f7a9002e5ec3f3ff9281b9759d71d6ca"
+   }
+  },
+  "europe/faroe-islands": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "e4885fe92e4f3ee561a80d1f5014e2fb9e17e64248a39efb3f3fa08dde4432d0",
+    "poly": "12cbf750f083ad314e9c083e580ad60da01c7cde890cbe2c0daa3d30d710d98f"
+   }
+  },
+  "europe/finland": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "5e833eb16428d088beb196a1385f42f5048e40b194560d4f76892c1408b2a0ce",
+    "poly": "c7d7dce360d2ef3d9b78658b76647410ca59219d6eaa85fa111c638655d8c4e8"
+   }
+  },
+  "europe/france/alsace": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "12ae2986e714c7f9a1209f8e2a6e13cdc7ce3fcaee57ebdf34aa68c33b4d1c9c",
+    "poly": "6ecf690f0b640a855254f20450ea07456cb23248dedbb1f257302b70d29f1dc9"
+   }
+  },
+  "europe/france/aquitaine": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "764e371a719b9d417a6222603e899177814ec9a631c91b8dfa3a388bc28d4388",
+    "poly": "57095926b499121231a20a2355a30b7a607be011251b882f94b435c36b790285"
+   }
+  },
+  "europe/france/auvergne": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "24bc9ae3f07bd7e992ddaff5d3a898e10ee2966171be35e3e275abc2fd579d9c",
+    "poly": "65525522ac09a0762f1d65cc78816de8ab850bd79613d0b1c0622eb7fa883ad5"
+   }
+  },
+  "europe/france/basse-normandie": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "94d1c5dd5d465ec1e45921a2eeac703c44abcbadedb02dc8c33f9851aea09ffb",
+    "poly": "ee30c969f52b9d5942af3cf9e8577b10ee58718251ddb4138712c3ba22ee4943"
+   }
+  },
+  "europe/france/bourgogne": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "4babd1fb27b431bbbdac88a8150b0b4dca2b3b83d5b1a944ddd554d2d5fa1a39",
+    "poly": "f3d3b7a030097da0cf04e7e28cb0ca2e887a5b2442ec52c3fce9fdbcfdbfc75c"
+   }
+  },
+  "europe/france/bretagne": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "dbb371832dd499c950defdb82d0b0456a8540c056f7d211b472f23f8e4f5af13",
+    "poly": "c9505227564d41b5ab00de81a93cccb859717a22d03c3bcf57822abfeaf63d4d"
+   }
+  },
+  "europe/france/centre": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "24382e9b885c643e5d1756450ed1c345dcd1cf6550d3bf1006566fc6d97dc2b0",
+    "poly": "3cdff638185eaac0322daa1ba8f2a11dbe8e562a269b38e6d14353023cfde27e"
+   }
+  },
+  "europe/france/champagne-ardenne": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "334436cb098801fdf9534ca0a58d0028183d50c723a5f1414ee6ac000720937a",
+    "poly": "74ecc282ebd38921cbb94841be2b18d304b23337d3c959da0a1aea639802d8db"
+   }
+  },
+  "europe/france/corse": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "63bb6a211b44cdd39e87225591b5a939354d5770be57241e8fd9356d2afd7f00",
+    "poly": "2288b4a29bb119ed981191f2d13e50a4ca99fded8d34c1292e235eb27e338efc"
+   }
+  },
+  "europe/france/franche-comte": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "ed418437bb1519721e5f59ad9d9cbc3da7d81b60958cf9c577a910839c96f22b",
+    "poly": "e1c449f1343b2766b6632176d89321836de7f95d1bff602ac3001b7582bc4bd5"
+   }
+  },
+  "europe/france/guadeloupe": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "da5a4d961af4c980c918a3e56b033ea83117ec65a12f5387f40fa7fd45bdec51",
+    "poly": "a4406ff92b4e8480b7abfc87e62dd482f9ae7df23635b0dbfd09dab92926a905"
+   }
+  },
+  "europe/france/guyane": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "9371409c869b249d7990b83185be39056e59d4ef8a2742310d61d99cd90ee280",
+    "poly": "9b547344ecf71a2a6919ae1b2787fad1c33733c5d1c0ce93fd43024df5d7da41"
+   }
+  },
+  "europe/france/haute-normandie": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "da078e206232b1aec07d037739b2cf28122d3fe15a596ec7d72980b56d146f80",
+    "poly": "a44fd2952a8b6fa4276dcc6c9801dba119703ed73f2808a35a179058b29fc4ba"
+   }
+  },
+  "europe/france/ile-de-france": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "f4e3dcaa945a2e989fd0632c63f01a6d7483e7747ff621cf4ae8935f9819f042",
+    "poly": "ebda64b6174c4cff0aa4aedc702d54bf5035bf19b173e0593d83060d16489683"
+   }
+  },
+  "europe/france/languedoc-roussillon": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "239bfde56791e4822a54ba0e3e2c3b0e9769a83c1ec4993cbca2368fc37dd4eb",
+    "poly": "0daa6b9b3288837844a33e60932846fd33e7da206aba4363e4b3734dda35898e"
+   }
+  },
+  "europe/france/limousin": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "263603b11bae3b4e81770d7d57fa305dce76840a31fae5df392f5a9400f2acf2",
+    "poly": "05a1f4ec7e7ca2e2e61e5979e62e554583c9f564f950d372e7af9dc6dd27914b"
+   }
+  },
+  "europe/france/lorraine": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "757bed58106dfe66f0bc934e5922de13958f5f26cc87faa51533a36079925953",
+    "poly": "067a3322b69f57a7c6d2f517bfc26d62a93fa9dcac30e34c2b427069ca265ed9"
+   }
+  },
+  "europe/france/martinique": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "5d14d0e4288f9de2614e3adc2812b0939311db11ceded813d7cf394a691b4927",
+    "poly": "f05c403b980dfee3291aee41bb40dcbb99a0f09cc4f6b41be26944bb175b8072"
+   }
+  },
+  "europe/france/mayotte": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "356aeaab96dacc5d056de2ebbac24d33cfbb812c5442f753b65a0eb0e7a7dc3c",
+    "poly": "2b2d0ea514d8c3e59a14230cfb2007f8f644862df72b1f2abf0008c896a13ecd"
+   }
+  },
+  "europe/france/midi-pyrenees": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "900c720104d3ca1e89b2c63e276ca7307acfeb5c55dfb229363ef34e01a8b1e0",
+    "poly": "4a3b87a2b1d75ad5f89fff3280803442dd7dda3cf1dbc29fd7b029aa9bd4a0b4"
+   }
+  },
+  "europe/france/nord-pas-de-calais": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "f88b42cb3a97b864b78a01e524d840f65f850a52488802df8281f7340d7b4776",
+    "poly": "b2bfcde132f6d9aa7fc0b43ece6a15c377660292eccffbdcdba1d92bc7c74b42"
+   }
+  },
+  "europe/france/pays-de-la-loire": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "6bedf6277bd52b2144d2fe1846882ab1d548f8279418541f304559d12ad368e2",
+    "poly": "407ed00797e0cae132a7acfd9b78bbf0ee5e0720106e97cdacf389e7b94044c7"
+   }
+  },
+  "europe/france/picardie": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "33f51357455528c96d0d320b2a18485c61d5ac9c7bdf817edb15eb54f7222011",
+    "poly": "20acb6e23975bb9d0f77bf4c1674828a2f24f2e91df0a13e70c8b46af0d98d72"
+   }
+  },
+  "europe/france/poitou-charentes": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "fe76b35f55fb34ae43e491372fcfc0cc7a5ad61fcff406ca4fb0d1a2ad916bf2",
+    "poly": "ee04dd34e92ccfd7a74ebf4d05b04b280fe3fc531af431e464be99db0a1962c9"
+   }
+  },
+  "europe/france/provence-alpes-cote-d-azur": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "030640f1413ffa5f4d1fbc5c37a69a5e39774d9f53de962d4cdde9a9d4aebabf",
+    "poly": "1abf1a2149aa4710bbdb07dfbfb6f9a989254b9ed07c79b6ca6f1e231ad53abb"
+   }
+  },
+  "europe/france/reunion": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "218d878f0244f72939ccb694cdcf56409fa8d6dd2526e74ad574bc24392ca424",
+    "poly": "f2b8585889054e5d267e5680738c22e6bcebdf718e4257906d884cd18e738b3f"
+   }
+  },
+  "europe/france/rhone-alpes": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "3893bf09e5044e579676db7262851037fc820e67ee642888b5a7bd14c7761c9f",
+    "poly": "18ec17a989da2211d44f85385cc3b42af97b53d59d8404b3c3c5b26376b5e342"
+   }
+  },
+  "europe/georgia": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "2fbe457d481e34bd94ea3f19565a0e2415ce903abbbc02e1bb162997a3a0b3ea",
+    "poly": "7d377c2747d6bca2abbd04d61405337631f280ee509052017161aa83423b70ba"
+   }
+  },
+  "europe/germany/baden-wuerttemberg": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "b0f59fde6422095205c7e1aab6b7b5a010822a893d109fa14790314e4ae5f743",
+    "poly": "7f6efa982f9e22cad15bba8b01120c2ff61f8d45c40e9e0c8d6d77c2e81af541"
+   }
+  },
+  "europe/germany/bayern": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "da119912415dc4d849dade6150391b80141907a5e514633b9830181e53f5ba0f",
+    "poly": "d700a15ef066e4ccdf2e823b2ace04ec11a4194ddd53411049542801f13841eb"
+   }
+  },
+  "europe/germany/berlin": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "4c3a9e2237f0f346f7038f45aef1fdf73aca88c46d11abb1941b37579795b7bc",
+    "poly": "6894877c9adfe577e6350b6b0ba01b4e18531851713a2e232e63bc42bc64faac"
+   }
+  },
+  "europe/germany/brandenburg": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "9947bff50aa5739d83eae7c31f0fa4b20b545d3ea6482254a38deebcef582af2",
+    "poly": "bb5e8fc925ecc40e15f7c61f8c7aba8c9e13aacae56d45ba45ac07cc6487150f"
+   }
+  },
+  "europe/germany/bremen": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "8ce86ab0c448ef9f30132f96f0cfb853c2107a3afe3fb866a51b1cafab97648b",
+    "poly": "7d008118ef4d1f1f04d2254548acd6bba104dae337a19d4d8ec369d09208687e"
+   }
+  },
+  "europe/germany/hamburg": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "a862dcaba8e0793d7fb634c56969d933db6092ce07b0792e127ea38b5973df2b",
+    "poly": "9588671278654b3a457fce3b2387c3f32f7f35e7e87581c9367549358184c632"
+   }
+  },
+  "europe/germany/hessen": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "d8deab31d28c0b0a0b48cf9b56e00f7ee08b7c6b45c7d52cd21bd9ad429a000a",
+    "poly": "4637956c85ff0fb64f668b122d48a4abc2255cdaa0331d5203127c15c0152520"
+   }
+  },
+  "europe/germany/mecklenburg-vorpommern": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "4add6025d8de630b2636a091b3532a41048876871e3feefa5275fe0c56baa326",
+    "poly": "026de3581bdc52675955194152bd7620c1c24c4c75f4244fc776f55b4fe9b32e"
+   }
+  },
+  "europe/germany/niedersachsen": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "e7ceada2afea4d1bc3104a817af65e0eb8c5847196f3f659f1c0978db7624150",
+    "poly": "ab6ba13b983e63b7110914446d5ee82d578df4659fa393f1fe2368058c300b80"
+   }
+  },
+  "europe/germany/nordrhein-westfalen": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "80f156a917ac56f9a32b27d9afdcaa2db8f3c3c60f2ca046cdb050e9c87519ec",
+    "poly": "39de2fba930a668dd4babfe356c3ff485c0852ef20ce2706e6a7c086395c4f49"
+   }
+  },
+  "europe/germany/rheinland-pfalz": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "b21aee9bad72c9d56f9463bef3c0c1bd25b5d3dafe302b789bcc16a6961f66ce",
+    "poly": "8222bacc71e3869cec661a457452c8c311a42a1afa0979d561ba6dc0ca8b4c9e"
+   }
+  },
+  "europe/germany/saarland": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "53a68ae94e92de89c894389c43d198ca559ab85c31b042a06ddc1a734a7926ba",
+    "poly": "8040526158183567be67d876d9a3a88d21b82aeb0913d54d66c2cd2eae75fa03"
+   }
+  },
+  "europe/germany/sachsen": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "c40096f39f4601982aef3f03364510dc98601a4e9ced141ff3e1cf81cc319e80",
+    "poly": "1d7eeb292f8ad03d5e724b10abf197b42846256f5d4c291d6d75b15c2c1b4d55"
+   }
+  },
+  "europe/germany/sachsen-anhalt": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "17942a6353b39ea743c48c4a71462fb4150f6d4828c155d35a551b0a317b8d45",
+    "poly": "8cfaba37360087feff109a4e7c5e4462b8f6a3687429f06af3b5b5d6d257a360"
+   }
+  },
+  "europe/germany/schleswig-holstein": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "a34acada5e5f0ec05c47b835dacad744b73af6a0e935c1c20e399132f1bcef41",
+    "poly": "768414bfdf4b55355b84ab8560f8292389158bc9a6e1e399d4dec762b41366f4"
+   }
+  },
+  "europe/germany/thueringen": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "3a70d397157444f549301f1d8f745fbfaff466b2a878ff40aeb1bffbf612b2db",
+    "poly": "5482eac497076a1d4eca6e2e90fe2cf0e2c1e23cb9fb2a0e81e068dad9e4c75b"
+   }
+  },
+  "europe/greece": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "e721e366fed3f720525e0f958e9d730b4cd44a6ee50b4e099e651cf8874be475",
+    "poly": "037f2c4c8babbe9d34998ab9022f68d751151a8bb079709cd97cf5cbaaadde0f"
+   }
+  },
+  "europe/guernsey-jersey": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "af0dd209d55fe3bbd2af3e853de9ef5a04f1b7410947a29b3c0ca07e4f6cc424",
+    "poly": "741f89fd36dfaf8c8d4607e184db3eef9a71380d3270d2b768744c284ab048a9"
+   }
+  },
+  "europe/hungary": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "699ceff9e768b944f22d70a6aefd98830f0a97077252a9a94ed97f0e1f60fba4",
+    "poly": "3fd8d98b47628081d72e1f55c297c14a498347af70be73a4a52fc4fdb2e4572c"
+   }
+  },
+  "europe/iceland": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "8f90911cd2c516faa1ee148307ebedf6a8bdf5c29c76bd24bfbfb19c123a9258",
+    "poly": "2c19f514be888d1b89802a20fbe43157188183dc9a0b49277ee891e68962bb79"
+   }
+  },
+  "europe/ireland-and-northern-ireland": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "baacafd6e4b0ff9a6168f1b886389cf13a0097049ed7874e0f48c6b9bb9ecf08",
+    "poly": "fc56ea18191a8d272ae491fc14281ddc01ac9835d77e2cded56fb6d1829f0fe8"
+   }
+  },
+  "europe/isle-of-man": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "d3ef95976a040bc3ff8216cbb87880755d691724b12f8a6ac98c2f921e32903b",
+    "poly": "b0e8395acdbf35e98624a5c3d533019028b89b0da49eeff9e83fa71f827ba864"
+   }
+  },
+  "europe/italy/centro": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "af8bcfc8c21cdfe6de85946781a411f5063afb511e0e43d19b4c01470756461d",
+    "poly": "1a7fdd247eb80a432d47bffde411c179a8da357ac7ea47e74e3677afa403e4cd"
+   }
+  },
+  "europe/italy/isole": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "8632c25b66b88401b4f07266e0bccb6600729ea2953f7c75550f38d81285aa43",
+    "poly": "9ea3885681d0de15f7ccee03cae126612bb595fdb8c3708c3f6f6ff67833706e"
+   }
+  },
+  "europe/italy/nord-est": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "4c463678917e046ceaea27b83ec04ccf77ad46f732a2cbb4ef12d888e29376ef",
+    "poly": "a7fb592a32b68e07f34a6fc90f04ad3566f8e73e346acc76d1d6ef36faac5e13"
+   }
+  },
+  "europe/italy/nord-ovest": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "2fb572b3b8a152071eee6ba384a64ef8dfed512e3c0632fe04f5c928b3493983",
+    "poly": "4d6962b497cca39705476917d3c1749f7bab138b9ec97306d8847ccceb836395"
+   }
+  },
+  "europe/italy/sud": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "490d74db852b5290aa04f68f4c1f0e35677e3abedaf501bb0b1c3dc6367caf9e",
+    "poly": "0aa952089c59dd862774fa53c8576c4e081fd196f8efe0e4c97ab87267850711"
+   }
+  },
+  "europe/kosovo": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "8c47dbd819845e856ed63275f317d85affe94f0ee9981ce52be3138f6fe2bce4",
+    "poly": "b4c60ac384cb1c4fd9925feeb88718a5c95aa0b9c1cd25138cfb0c7f4a034170"
+   }
+  },
+  "europe/latvia": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "bfae20c0de04be5985129ac1faf03a2f7efd42fb38e5982e73f41902e0c34e47",
+    "poly": "bb72540002e4818f7562512bda0e7629d5c7668205e0d005fe1685baf175b712"
+   }
+  },
+  "europe/liechtenstein": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "3c3f8940ce206ce7162471482b0b554769329e8f33058a5cfd59a84628956ab6",
+    "poly": "0e3b94b2bf27d91dbcc412760d0c81c3ce047a42c5df4470d94f79c8b0ce7c3c"
+   }
+  },
+  "europe/lithuania": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "bfeafa1b0d8e4c9bee4fd2cc50ca2b7cda1b45f9c8faf5afb480bae436ad837a",
+    "poly": "e39eed51feb99a540263bd825787ce14fdb0207a4b62e5439f199b49abd20f26"
+   }
+  },
+  "europe/luxembourg": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "6f86aab8234b2781536a3ca024df0219d07d2ce6e40e5c915c9ec54fe5e79cc2",
+    "poly": "d5f706e4a3d25d9f51736659b96b018883e7fcf8fe7752e84d6c56d8abfb521a"
+   }
+  },
+  "europe/macedonia": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "dc4a67fbdfd8037d2911665295791a9cb5537f5aa5ca39e31123a0a97fd5f7ac",
+    "poly": "61883f3033f775e176d8bbbfd2f9874b5c9876b8182c9737c11d6f588964a60f"
+   }
+  },
+  "europe/malta": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "59e9f6b54a5c1d7e0ffe33d9f6c1d15ccb3714c2531cea9077517d22b8cfde19",
+    "poly": "8f8435941862120b21516313cd5e50492e755970902182c544db5772e8f60998"
+   }
+  },
+  "europe/moldova": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "135b6daa7db8246e824d4c01cd39d8d7709934961a34740b903bfc2eba38fd25",
+    "poly": "07aa3c2c5a1aa1b7515d51a6052088ad4fe848d65d232793528c99fdc8c74664"
+   }
+  },
+  "europe/monaco": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "a2c099e16316315ae55b04e9732b1efadba11da616808bf52988da51648bf4fe",
+    "poly": "4b382cbe0add3661ebb37fd59bbd030523543ad88638b2a01ae41abe32124289"
+   }
+  },
+  "europe/montenegro": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "0fd3850e9e4fda736e5fc2708e1749385a20743a813fa44cf2daef40973b79b7",
+    "poly": "5b8871aa68125e4918b9e9676e5f1d7578b88e6c0aa26971c1fbf162fabad92e"
+   }
+  },
+  "europe/netherlands": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "49a4664a2099d46779c548e96e02f77f44532058104fc61374b2aa041aa0bb81",
+    "poly": "a309e3be2294f2f869b8a3eaedfbfa7e959245b53c40c1b799b541969c6a15c8"
+   }
+  },
+  "europe/netherlands/drenthe": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "39814bf95707567832ad4c9fac5d7d017d44af42b5b6dd406a19508e0b72f95c",
+    "poly": "b5a814c28cd781aeb5597f5bad113d2984d2a92a991d03792fd172d4a688a9e8"
+   }
+  },
+  "europe/netherlands/flevoland": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "19277d657f6a76a0be8172ee9874538c253df98db8be4d5eba754eb04eb72dbb",
+    "poly": "8c6e06b04bb6801767483db0ff20213264fbed02ff5c3906039157854520506e"
+   }
+  },
+  "europe/netherlands/friesland": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "b48f352e9e34e2c8b5a9ab39bd6eb0634fa6738028c8393877db1cd998057f5d",
+    "poly": "283e4152a52e31b92ca073f4c353565fdc1cfd6a7564338ffdb9d2ff46056b72"
+   }
+  },
+  "europe/netherlands/gelderland": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "24e93a83a44feac1aaf0d07d9dedd444027f3326f76fdd8b0611ac66c915add1",
+    "poly": "01a8c338d2089113daac3f94176b3897a9afe9bdfd4276da44d9e81d9aa451aa"
+   }
+  },
+  "europe/netherlands/groningen": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "39814bf95707567832ad4c9fac5d7d017d44af42b5b6dd406a19508e0b72f95c",
+    "poly": "0f9ea90d5eee2e50459790158278f66b064e0a996f63dfd0651401b063d65f9c"
+   }
+  },
+  "europe/netherlands/limburg": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "a71d9d2dbd5b3e9465035e50d82fcfbb5c81b76f265de04c70d590ec609a2515",
+    "poly": "4d3c39fca5883b0123e610cd2177ee34502c13195139d68887898f3988c78621"
+   }
+  },
+  "europe/netherlands/noord-brabant": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "d4ccb88d03bf6f50bda2dd16cff90c2b88992123485a74d4bb8a671e1a4286e1",
+    "poly": "57606a04004c3054d6c386733a0461dbd4ef329517f69ef2ae04f7d6a8c7b362"
+   }
+  },
+  "europe/netherlands/noord-holland": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "bd6e8e191f68fdec46d8517490fbd4b3f16afafdd77bb958ce758075a7bf0f35",
+    "poly": "22d48aea280811d274171fb048a8e947a453597f937f8c233de6225cd7556bf4"
+   }
+  },
+  "europe/netherlands/overijssel": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "d1242f562de0b4516ba7600e356333dc518e8982a98a0b13bb9fe85226b7b195",
+    "poly": "9a735d8a8f4d5b4503f2c56f356dd8153f4795d9f9328eaa7426335ead08f4f8"
+   }
+  },
+  "europe/netherlands/utrecht": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "877b721e7374293f3bfc09d9342bf56a233c579bda90d1a4e82481177bafc0cf",
+    "poly": "e0d6b791a4b3d7515118546da031e07fbcee43255370df10029399eb768468be"
+   }
+  },
+  "europe/netherlands/zeeland": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "9c71efef941ed011720f7293f3917e5a071339308a5c6d8aeb0adc584c69f996",
+    "poly": "d2db7d25eb62957e3d391672a54c46a6c965ac94515231b5e53f18469ca6d743"
+   }
+  },
+  "europe/netherlands/zuid-holland": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "92358849db1a61da44cccccf73806eff60138c416bedc85596de0aaf6cf85c8f",
+    "poly": "29cd8492d4a535488c59680f3b07e0b64024efdb0669e3c4c8a5d14a82f33c67"
+   }
+  },
+  "europe/norway": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "71554ab3706ca25d3bd4bc73ecd0594bec47feb5b023b49c1564b3f26874a772",
+    "poly": "bf08b7f9f070e62d1b64b8950c05dbefaa77bba7c0637394acecb4a959d493b4"
+   }
+  },
+  "europe/poland": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "3a237e53d6efb548a3a4fd3c128e8c00018af65e73b794ed70dd9bc85ce3dfff",
+    "poly": "2c35d81817b6aceb6de3346e30984e1fb9c87e14c4ea71146719fe30dc10eae5"
+   }
+  },
+  "europe/portugal": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "c7693e2be7bc3ae11737b79f6c73dd222b708323dc24c6eaa1d4a2df3d97b7f8",
+    "poly": "b6eac12ed0d04d87c0371289d2f9b95365cafce0ee94fefd01b5ecc33a52e5bb"
+   }
+  },
+  "europe/romania": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "810b99d4cd696f13b0763a23e91f9a1bafb1a353f4650e95cb8879a1036a9e6b",
+    "poly": "6cea4b19e32bf0a7ea4dc69b755a136b4e85db24ebc631ea4f296477d6d12610"
+   }
+  },
+  "europe/serbia": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "85eb0f26878ab0ae3b52095e287c3592eeac179a985d109b5e4ac8ecf1fbef2b",
+    "poly": "ede8bc9e71f1e69c6b2f728f1614f0434cfcb1dd4d14832910d67f09718672be"
+   }
+  },
+  "europe/slovakia": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "4b5350d108c3e97e0cc39601bb5fb17bd05c88600c102e0b501e880e8d06cb06",
+    "poly": "527054d374076434ac0dba8da500bd06ebb34b740e7fafcf59e5fc5993b3a7c7"
+   }
+  },
+  "europe/slovenia": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "53522f156870c3a179445f2ac86d36c88bfbca01d85e376fd429eb0b91aca164",
+    "poly": "f5813a8cda35bb54b0d3123e62701165e10068f532b0aa0fda70926f2d7ddc32"
+   }
+  },
+  "europe/spain/andalucia": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "03f3c13a125a813e741cbec0cee910f5f391a62aa9ba2158b6444352e2607692",
+    "poly": "a801f43682c70935ccc3d87ac9f5905c6434c75d6a1e6b85bb336a8b679eb1f3"
+   }
+  },
+  "europe/spain/aragon": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "690221c00519a12e5e6d79782092581f17be51c7563e009c73ffc4a32b64a5e4",
+    "poly": "58aace56ecc3c61d9f1b7922ee18f5c5faecdf2da5517143d14f8ea1d1efabc6"
+   }
+  },
+  "europe/spain/asturias": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "b34346257350de3edee4bcaa0096a51ad19d25aa0a7fc7caa25b56d5231dfcfc",
+    "poly": "1620ede2b4257f299bb7f424c7e87c6cbfb728a617b98ed366bda36453bd9271"
+   }
+  },
+  "europe/spain/cantabria": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "1346cf3987a52fb4c32f903422003718c3d1e799be573e3304c88fdfb20cc635",
+    "poly": "64cc9cb3ad43b301eae6d347150de6e529b1a7b9f0af54e7a5dbdcf82f213a5b"
+   }
+  },
+  "europe/spain/castilla-la-mancha": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "6de5d44a65e03435c0da96679898e665e3ff228bf677e4e2b8f847cb3b2a7801",
+    "poly": "ae40b770367fb2c503db8f079f196292fb81baa6fffc4b6e144a8788d77a9204"
+   }
+  },
+  "europe/spain/castilla-y-leon": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "5c8fb5b10e6b6e2e81566b6379b1c2ac22b30b02ddfc96b1c77e82141b4c5c20",
+    "poly": "fc9642d54860e2297da663d24ec0c4330a2dcb7b4013b6c9ae90a22fac75a76a"
+   }
+  },
+  "europe/spain/cataluna": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "d4b7ddd4cbe5b11ff80e3c1e3c117d83e6277deca46ca99a11c1335bd3c739ee",
+    "poly": "ef0264c6200af7d7b3a8031e9374fddd29daabd6318aa4f6ed271b3dfb3a284d"
+   }
+  },
+  "europe/spain/ceuta": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "dbeb847c5387e8aad625bab1b4bfd7cafe87a78b214bbd06a67fe34b79f2601d",
+    "poly": "b2c4861935022ed4b938c562a1fbd7cbf4b38d73e5f49fb255b69235dc8cae92"
+   }
+  },
+  "europe/spain/extremadura": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "eb235b7d245326b7626f32d59248f370c717dda97e3a6f33c24556e021361cb0",
+    "poly": "ef85616ad0b6d8edbf92803c171172522a2edba7d1ada757ac8f68b5dfef2a7f"
+   }
+  },
+  "europe/spain/galicia": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "640520bfaa8d91a29a64243e60749e37990a4420315d379109ec4a4b0276a507",
+    "poly": "871c7bf34fd092f6d1ed8d49a4d37f7a4bc7344981198b9e0ea609f7015bade8"
+   }
+  },
+  "europe/spain/islas-baleares": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "8cf9b8d7e9a6e2dc2036fb834ed44db5e957d9667f3e5d3f9ccd0a1e95a58d19",
+    "poly": "2a93d024f378d5fad6c2a8239f6b5f28f529bd006141105ddceb006383aab88a"
+   }
+  },
+  "europe/spain/la-rioja": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "fde10297852169498fab56889a1255bcf05ad892479682ab085f0a1317b83ea7",
+    "poly": "3dfcd1b29c01e8d755f5cb746a8b890881c4c8cd0e6f588e1dbdf03103603739"
+   }
+  },
+  "europe/spain/madrid": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "1fd96f5a890b6eb09a8228e03c293d76bdc3cc3a1650d7345cb63681b7790d4a",
+    "poly": "95c5f6877f1c701142bcd58ccac813cf18ebef7235a9887bae8a849cc7befa06"
+   }
+  },
+  "europe/spain/melilla": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "43ebf70ad36bd2d8f80af7aa50c7a811297edbb999139bc73fa5b4d4ccdfd279",
+    "poly": "ddd66dd60bc15ba9ca1c969b1a041cbe4495fbc4f183bc7768cc38e80aae96d9"
+   }
+  },
+  "europe/spain/murcia": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "c89aa11b32e68de972e361e9c49073649d7ab7214cf8bd11cc18d230122204c4",
+    "poly": "4a1ae827a78f385e647a5e382a2cd3be65e50fd760f2bcf50f712d1f26655d4f"
+   }
+  },
+  "europe/spain/navarra": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "46b54c6bb574f1c53a78453d3ba818ffb4282b1a9a2ddc3a610ff4811bc5080a",
+    "poly": "602dead03e0738e1c34019d44ae6f6950351d7f19f93db684a6f6214def1c8a0"
+   }
+  },
+  "europe/spain/pais-vasco": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "ed49a7e25b7cc8c87288e400771e1c181fd9c9aaea6a44151dbf457fc20363ba",
+    "poly": "1a59186f511f8f9631fbf03db79d0cb398e7b217e9d13a50ee56afa61415b8ba"
+   }
+  },
+  "europe/spain/valencia": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "d9d14601914db6c6674d2c7b1a1e19b642f5c54e01337ff07429c96bb38ffe94",
+    "poly": "cc73600697932d3120195e5e31b60e5442dde58612d65e1c726f5c71f73d987f"
+   }
+  },
+  "europe/sweden": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "ff45d2393c34621d43e5a0b91d46a1178a9b63736e87969cc3b8f2c31307b2f6",
+    "poly": "e43c9b349c79aefc5b561dea6f591118cf78a2e890945fa27f5122d03417d3d1"
+   }
+  },
+  "europe/switzerland": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "ea35c480dcd4ee56d804480e57ac6faeb81fbd7650a7a5017d6dd1c87a25d01e",
+    "poly": "4f254d87aaa51f0903df76052c114685672ccf2de043a334c246d7a3fb8db179"
+   }
+  },
+  "europe/turkey": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "bc00f2a10b803b050ff6b5b77103edce67e4f1f0dd78e634474e4373e34a03fc",
+    "poly": "6c41ac3f661ce4764e3c7ba30a7e2f35e1bcbaa1b1f8b91f6d78a9c0e3344ea9"
+   }
+  },
+  "europe/ukraine": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "ab125b7adba93d233013dc970a6a962faa2b1071266ddc68af6e93bcb99073e9",
+    "poly": "ca0a49607b7cdf9df12c80d254ecd0b699bb0b230421af4373db4db3f9f63471"
+   }
+  },
+  "europe/united-kingdom/england": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "3daa33a99188c12eb4b274771d3f55853bf40353cadeb6fecd1afa4bf1e9ac1b",
+    "poly": "2a3f3f0b6716d52990a973835789227a190e2c1770e33acacb15241685e96b53"
+   }
+  },
+  "europe/united-kingdom/scotland": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "32a981e2e3066cd8a82bea219298199235190f7182ac984763919dd4b0b0327c",
+    "poly": "21a760a04939c3facdc4a99e7ea8cfa5d2e1180b936230fb5801c85f1732455b"
+   }
+  },
+  "europe/united-kingdom/wales": {
+   "contours": "layers-2026-10e",
+   "dem": "layers-2026-10e",
+   "fingerprint": {
+    "copernicus": "82450ed42be6448630b59f537f891c0af17b58d0a691118fa0f1395c8e0c65ea",
+    "poly": "c7b9cf40de410cc5821c71469a15fc1b5c0a5b12190cc10968df533ec7eda08f"
+   }
+  }
+ }
+}
