@@ -14,5 +14,5 @@ if [ -s "$R/mapping/poly/$key.poly" ]; then
 fi
 url="${MAPSFORGE_MIRROR:-https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org}/maps/poly/$key.poly"
 echo "::warning::mapping/poly/$key.poly is not in the repository, reading $url (add it with scripts/update-poly.sh $key)"
-curl -fsSL --retry 5 --retry-all-errors --retry-delay 20 --connect-timeout 30 -o "$out" "$url" \
+curl -fsSL --retry 5 --retry-delay 20 --connect-timeout 30 -o "$out" "$url" \
   || { echo "No outline for $key ($url)" >&2; exit 1; }
