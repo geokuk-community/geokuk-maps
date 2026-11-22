@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Verifies the draft release (every file in layers.json is an uploaded asset of the same size) and publishes it as the latest release.
 # Published releases are immutable, so nothing is published when a check fails.
-# Env: GH_TOKEN, GITHUB_REPOSITORY, TAG (optional; the only draft release layers-* is used by default), DRY_RUN=1 (check only).
+# The GeoKuk themes of the release must match the layers: their attestation, and every tag of the layers that GeoKuk-tema.zip draws must be
+# in the headers of the tourist and contours maps (scripts/theme-check.py over the first MiB of each map).
+# Env: GH_TOKEN, GITHUB_REPOSITORY, TAG (optional; the only draft release layers-* is used by default), DRY_RUN=1 (check only),
+# optional GEOKUK_REPO (repository that attests the themes, default geokuk-community/geokuk).
 set -euo pipefail
 : "${GH_TOKEN:?}" "${GITHUB_REPOSITORY:?}"
 R=$(cd "$(dirname "$0")/.." && pwd)
@@ -25,6 +28,22 @@ for other in $others; do
 done
 python3 "$R/scripts/finalize-check.py" verify-other "$work/layers.json" "$TAG" "$work/other"
 python3 "$R/scripts/dem-source.py" check "$work/layers.json" "$TAG"
+mkdir -p "$work/themes" "$work/headers"
+for name in GeoKuk-tema.zip GeoKuk-tema-PAWS.zip; do
+  tid=$(python3 "$R/scripts/finalize-check.py" asset-id "$work/assets.json" "$name")
+  api -H "Accept: application/octet-stream" "repos/$GITHUB_REPOSITORY/releases/assets/$tid" > "$work/themes/$name"
+  gh attestation verify "$work/themes/$name" --repo "${GEOKUK_REPO:-geokuk-community/geokuk}" > /dev/null \
+    || { echo "$name has no valid build provenance attestation" >&2; exit 1; }
+done
+cp "$work/assets.json" "$work/other/$TAG.assets.json"
+python3 "$R/scripts/finalize-check.py" map-assets "$work/layers.json" "$TAG" "$work/other" > "$work/maps.txt"
+echo "Reading the headers of $(wc -l < "$work/maps.txt") maps"
+export GH_TOKEN GITHUB_REPOSITORY
+xargs -r -P 8 -L 1 "$R/scripts/map-header.sh" "$work/headers" < "$work/maps.txt"
+for f in "$work"/headers/*.map; do python3 "$R/scripts/map-tags.py" "$f"; done | sort -u > "$work/tags.txt"
+echo "Tags of the layers: $(wc -l < "$work/tags.txt")"
+python3 "$R/scripts/theme-check.py" geokuk "$work/themes/GeoKuk-tema.zip" --tags "$work/tags.txt" --notice
+python3 "$R/scripts/theme-check.py" paws "$work/themes/GeoKuk-tema-PAWS.zip"
 if [ "${DRY_RUN:-}" = 1 ]; then
   echo "Dry run: all checks passed, the release was not published"
   exit 0

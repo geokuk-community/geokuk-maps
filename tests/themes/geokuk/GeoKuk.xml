@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test fixture shaped like the GeoKuk theme: rules for the base map (left to it) and for the layers (fmrel*, tourist points, contours). -->
+<rendertheme xmlns="http://mapsforge.org/renderTheme" version="5" map-background="#f8f4f0">
+	<rule e="way" k="highway" v="path|track|~">
+		<line stroke="#a06040" stroke-width="0.6" />
+	</rule>
+	<rule e="node" k="natural" v="peak">
+		<symbol src="file:symbols/peak.svg" />
+	</rule>
+	<rule e="way" k="fmrelhikingred" v="*" zoom-min="11">
+		<rule e="way" k="fmrelhikingred" v="major|local|learning">
+			<line stroke="#e00000" stroke-width="1.2" />
+		</rule>
+	</rule>
+	<rule e="way" k="fmrelhikingblue|fmrelhikinggreen" v="major">
+		<line stroke="#0050c0" stroke-width="1.2" />
+	</rule>
+	<rule e="node" k="information" v="guidepost" zoom-min="15">
+		<symbol src="file:/symbols/guidepost.svg" />
+	</rule>
+	<rule e="any" k="tower:type" v="observation" zoom-min="13">
+		<symbol src="file:symbols/viewpoint.svg" />
+	</rule>
+	<rule e="way" k="contour_ext" v="elevation_major|elevation_medium" zoom-min="12">
+		<line stroke="#c08060" stroke-width="0.4" />
+	</rule>
+	<rule e="way" k="contour_ext" v="elevation_minor" zoom-min="15">
+		<line stroke="#d0a080" stroke-width="0.2" />
+	</rule>
+</rendertheme>

@@ -2,7 +2,11 @@
 """Checks used by finalize.sh.
   release releases.json [tag]      prints "<id> <tag>" of the draft release layers-* (the only one, or the given tag); fails when a published release is not older
   asset-id assets.json name        prints the id of the uploaded asset with that name
-  verify layers.json assets.json tag   fails when size or sha256 of a file differ from the uploaded assets; warns about unreferenced assets
+  verify layers.json assets.json tag   fails when size or sha256 of a file (layers and themes) differ from the uploaded assets or the
+                                   catalogue does not keep the rules of the GeoKuk catalogue reader (see compat); warns about unreferenced assets
+  compat layers.json               only the catalogue rules: what GeoKuk 6.5.0 (KatalogVrstev) needs and the two themes
+  map-assets layers.json tag dir   prints "<release> <asset id> <name>" of every tourist and contours .map in layers.json, with
+                                   dir/<tag>.assets.json for this release and dir/<release>.assets.json for older ones
   other-tags layers.json tag       prints the other releases that layers.json points to (dem and contours kept from an older release)
   verify-other layers.json tag dir     the same checks for the files in those releases, with dir/<release>.assets.json and
                                    dir/releases.json (the release must be published, not a draft)"""
@@ -15,8 +19,82 @@ def load(path):
     return data
 
 
+# The themes that every release carries (scripts/theme-catalog.py), so that .../releases/latest/download/<file> always works.
+THEMES = {'theme/geokuk': 'GeoKuk-tema.zip', 'theme/geokuk-paws': 'GeoKuk-tema-PAWS.zip'}
+KNOWN = {'tourist': 'map', 'contours': 'map', 'dem': 'hgt-zip'}
+SHA256 = re.compile(r'[0-9a-f]{64}')
+
+
+def compat(catalog):
+    """Problems of layers.json under the rules of the catalogue reader of GeoKuk 6.5.0 (KatalogVrstev.nacti): version is the integer 1;
+    a layer of an unknown type or format is skipped, any other defect of a layer fails the whole catalogue; ids and file paths are unique
+    among the layers. The reader ignores other top-level keys such as "themes", which must hold the two themes."""
+    problems = []
+    if type(catalog.get('version')) is not int or catalog['version'] != 1:
+        problems.append('layers.json: version must be the integer 1 (GeoKuk 6.5.0 reads a higher one as a newer format)')
+    if not isinstance(catalog.get('sources'), list) or not isinstance(catalog.get('layers'), list):
+        problems.append('layers.json: sources and layers must be lists')
+        return problems
+    ids, paths = set(), set()
+    for layer in catalog['layers']:
+        if not isinstance(layer, dict):
+            problems.append('layers.json: a layer is not an object')
+            continue
+        if KNOWN.get(layer.get('type')) != layer.get('format'):
+            continue
+        ident = layer.get('id')
+        for k in ('id', 'region', 'name'):
+            if not isinstance(layer.get(k), str) or not layer.get(k):
+                problems.append('%s: %s missing' % (ident, k))
+        if ident in ids:
+            problems.append('%s: id is not unique' % ident)
+        ids.add(ident)
+        files = layer.get('files')
+        if not isinstance(files, list) or not files:
+            problems.append('%s: files missing' % ident)
+            files = []
+        for f in files:
+            if not isinstance(f, dict) or not all(isinstance(f.get(k), str) and f.get(k) for k in ('name', 'path', 'url')) \
+                    or type(f.get('size')) is not int or not SHA256.fullmatch(str(f.get('sha256'))):
+                problems.append('%s: a file lacks name, path, url, size or sha256' % ident)
+                continue
+            if f['path'] in paths:
+                problems.append('%s: file path %s is not unique' % (ident, f['path']))
+            paths.add(f['path'])
+        zoom = layer.get('zoom')
+        if zoom is not None and not (isinstance(zoom, dict) and type(zoom.get('min')) is int and type(zoom.get('max')) is int):
+            problems.append('%s: zoom must have integer min and max' % ident)
+        if 'theme' in layer and not isinstance(layer['theme'], str):
+            problems.append('%s: theme must be a text' % ident)
+    themes = catalog.get('themes')
+    if not isinstance(themes, list):
+        problems.append('layers.json: themes missing')
+        themes = []
+    found = {}
+    for t in themes:
+        ident = t.get('id') if isinstance(t, dict) else None
+        if ident in found:
+            problems.append('%s: theme id is not unique' % ident)
+        files = t.get('files') if isinstance(t, dict) else None
+        if not isinstance(files, list) or len(files) != 1 or not isinstance(files[0], dict) \
+                or type(files[0].get('size')) is not int or not SHA256.fullmatch(str(files[0].get('sha256'))) \
+                or not all(isinstance(files[0].get(k), str) for k in ('name', 'url', 'date')) \
+                or not all(isinstance(t.get(k), str) and t.get(k) for k in ('name', 'for', 'geokukVersion', 'source')):
+            problems.append('%s: a theme needs name, for, geokukVersion, source and one file with name, url, size, sha256, date' % ident)
+            continue
+        found[ident] = files[0]['name']
+    for ident, name in THEMES.items():
+        if found.get(ident) != name:
+            problems.append('%s: theme with the file %s missing' % (ident, name))
+    return problems
+
+
 def references(catalog):
-    """(layer id, release, asset name, size or None, sha256 or None) of every file and outline in layers.json."""
+    """(layer or theme id, release, asset name, size or None, sha256 or None) of every file and outline in layers.json."""
+    for theme in catalog.get('themes', []):
+        for f in theme.get('files', []):
+            prefix, _, name = f['url'].partition('/')
+            yield theme['id'], prefix, name, f['size'], f['sha256']
     for layer in catalog.get('layers', []):
         for f in layer.get('files', []):
             prefix, _, name = f['url'].partition('/')
@@ -66,6 +144,7 @@ def main():
         problems = []
         if catalog.get('version') != 1 or not catalog.get('sources') or not catalog.get('layers'):
             problems.append('layers.json: version/sources/layers missing')
+        problems += compat(catalog)
         if len(assets) > 1000:
             problems.append('more than 1000 assets')
         if 'LICENSES.txt' not in assets:
@@ -73,7 +152,7 @@ def main():
         files = 0
         referenced = {'layers.json', 'LICENSES.txt'}
         no_digest = os.environ.get('ALLOW_NO_DIGEST') == '1'
-        for layer in catalog.get('layers', []):
+        for layer in catalog.get('layers', []) + catalog.get('themes', []):
             refs = [(f['url'], f['size']) for f in layer.get('files', [])]
             poly = layer.get('coverage', {}).get('poly')
             if poly:
@@ -106,6 +185,27 @@ def main():
         print('layers: %d, files in this release: %d, assets: %d' % (len(catalog.get('layers', [])), files, len(assets)))
         if problems:
             sys.exit('\n'.join(problems[:50]) + '\n%d problem(s); the release was not published' % len(problems))
+    elif cmd == 'compat':
+        problems = compat(load(sys.argv[2]))
+        if problems:
+            sys.exit('\n'.join(problems[:50]) + '\n%d problem(s)' % len(problems))
+        print('layers.json keeps the catalogue rules of GeoKuk 6.5.0 and has the themes')
+    elif cmd == 'map-assets':
+        catalog, tag, folder = load(sys.argv[2]), sys.argv[3], sys.argv[4]
+        assets = {}
+        for layer in catalog.get('layers', []):
+            if layer.get('type') not in ('tourist', 'contours'):
+                continue
+            for f in layer['files']:
+                prefix, _, name = f['url'].partition('/')
+                if not re.fullmatch(r'layers-[0-9]{4}-[0-9]{2}[a-z0-9-]*', prefix) or not re.fullmatch(r'[A-Za-z0-9._-]+\.map', name):
+                    sys.exit('%s: unexpected file url %s' % (layer['id'], f['url']))
+                if prefix not in assets:
+                    assets[prefix] = {a['name']: a for a in load(os.path.join(folder, prefix + '.assets.json'))}
+                a = assets[prefix].get(name)
+                if a is None:
+                    sys.exit('%s: asset %s missing' % (layer['id'], f['url']))
+                print(prefix, a['id'], name)
     elif cmd == 'other-tags':
         tag = sys.argv[3]
         for t in sorted({r[1] for r in references(load(sys.argv[2])) if r[1] != tag}):

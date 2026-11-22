@@ -43,12 +43,16 @@ on:
       planet:
         description: "Planet for osm_source=aws, planet-YYMMDD; default the newest with an .md5"
         default: ""
+      geokuk:
+        description: "Release tag of geokuk-community/geokuk whose themes (GeoKuk-tema.zip, GeoKuk-tema-PAWS.zip) the release carries; default the latest release"
+        default: ""
   pull_request:
     branches: [main]
     paths:
       - ".github/workflows/layers.yml"
       - "scripts/**"
       - "mapping/**"
+      - "tests/themes/**"
 
 permissions:
   contents: read
@@ -70,6 +74,9 @@ jobs:
       slices: ${{ steps.osm.outputs.slices }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check the themes and the catalogue (fixtures in tests/themes)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: tests/themes/run.sh
       - name: Check the expansion of regions=all
         if: ${{ github.event_name == 'pull_request' }}
         run: |
@@ -562,6 +569,17 @@ jobs:
           RUN: ${{ inputs.from_run || github.run_id }}
           DIR: ${{ github.workspace }}/upload
         run: scripts/download-artifacts.sh
+      # The themes are checked against the tag mapping here; finalize.sh (check-draft, check, finalize) checks them against the headers
+      # of every map of the release.
+      - name: Download and check the GeoKuk themes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEOKUK: ${{ inputs.geokuk }}
+          DIR: ${{ github.workspace }}/upload/themes
+        run: |
+          scripts/theme-fetch.sh
+          python3 scripts/theme-check.py geokuk "$DIR/GeoKuk-tema.zip"
+          python3 scripts/theme-check.py paws "$DIR/GeoKuk-tema-PAWS.zip"
       - name: Release
         id: release
         env:

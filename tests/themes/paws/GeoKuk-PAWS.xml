@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test fixture shaped like the GeoKuk theme for the maps of osm.paws.cz: only loading is checked. -->
+<rendertheme xmlns="http://mapsforge.org/renderTheme" version="5" map-background="#f8f4f0">
+	<rule e="way" k="osmc_color" v="red">
+		<line stroke="#e00000" stroke-width="1.2" />
+	</rule>
+	<rule e="node" k="information" v="guidepost">
+		<symbol src="file:icons/guidepost.svg" />
+	</rule>
+</rendertheme>

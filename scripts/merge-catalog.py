@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Merges a new layers.json into an existing one (layers are replaced by id).
 A layer built in parts carries "_parts": {"total", "have"}; parts of the same layer are combined into one layer with several files
-until all parts are present. Usage: merge-catalog.py existing.json new.json output.json"""
+until all parts are present. The themes ("themes", scripts/theme-catalog.py) are kept and replaced by id as well. Usage: merge-catalog.py existing.json new.json output.json"""
 import json, sys
 
 
@@ -35,6 +35,9 @@ def main():
         current[layer['id']] = layer
     new['layers'] = sorted(current.values(), key=lambda x: x['id'])
     new['sources'] = list(dict.fromkeys(old.get('sources', []) + new.get('sources', [])))
+    themes = {t['id']: t for t in old.get('themes', []) + new.get('themes', [])}
+    if themes:
+        new['themes'] = list(themes.values())
     with open(sys.argv[3], 'w', encoding='utf-8') as f:
         json.dump(new, f, ensure_ascii=False, indent=2)
         f.write('\n')
