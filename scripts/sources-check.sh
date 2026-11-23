@@ -2,17 +2,18 @@
 # Checks that the sources of the map layers are available, with light requests only (HEAD, the first bytes by Range, small indexes):
 # the mapsforge base maps and their mirror (size and date of the mirror against the original), the OSM planet on AWS, Geofabrik,
 # Copernicus GLO-30, ČÚZK DMR 4G, the tools the workflows download, and layers.json of the latest release.
-# Each check is tried 3 times (RETRY_DELAY seconds apart, default 30); only the third failure counts as an outage.
-# Geofabrik is only a warning (state warn): the layers use the planet on AWS, Geofabrik only with osm_source=geofabrik and as the
+# Each check is tried 3 times (RETRY_DELAY seconds apart, default 20); only the third failure counts as an outage.
+# Geofabrik is tried once and is only a warning (state warn): the layers use the planet on AWS, Geofabrik only with osm_source=geofabrik and as the
 # fallback of the pull request checks when tests/osm has no sample; it was unreachable from the GitHub runners in November 2026.
-# Writes OUT/results.tsv (source, URL, state, time in ms, detail; state ok|warn|fail) and OUT/summary.md (table in Czech).
+# Writes OUT/results.tsv as it goes (source, URL, state, time in ms, detail; state ok|warn|fail), OUT/done when every check has run,
+# and OUT/summary.md (scripts/sources-summary.sh; a check that did not finish counts as an outage there).
 # Env: OUT; optional TEST_URL (an extra URL to check, for testing the outage handling), RETRY_DELAY, GITHUB_REPOSITORY.
 set -uo pipefail
 : "${OUT:?}"
 mkdir -p "$OUT"
 D=$(cd "$(dirname "$0")" && pwd)
 REPO=${GITHUB_REPOSITORY:-geokuk-community/geokuk-maps}
-DELAY=${RETRY_DELAY:-30}
+DELAY=${RETRY_DELAY:-20}
 MAPSFORGE=https://download.mapsforge.org
 MIRROR=https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org
 PLANET=https://osm-planet-eu-central-1.s3.amazonaws.com
@@ -20,16 +21,21 @@ COPERNICUS=https://copernicus-dem-30m.s3.amazonaws.com
 UA="geokuk-maps-sources-check (+https://github.com/$REPO)"
 results="$OUT/results.tsv"
 : > "$results"
+rm -f "$OUT/done" "$OUT/summary.md"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-# probe URL: HEAD (following redirects); servers that refuse HEAD get a GET of the first KiB. Sets code, ms, size, modified.
+# probe URL: HEAD (following redirects); servers that refuse HEAD get a GET of the first KiB, at most 1 MiB even when the server
+# ignores the range (curl then stops with exit 63 after the status line, which still counts). Sets code, ms, size, modified.
 probe() {
   local url=$1 out
-  out=$(curl -sS -I -L --max-time 60 --connect-timeout 20 -A "$UA" -o "$tmp/headers" -w '%{http_code} %{time_total}' "$url" 2>"$tmp/err") || out="000 0"
+  out=$(curl -sS -I -L --max-time 30 --connect-timeout 15 -A "$UA" -o "$tmp/headers" -w '%{http_code} %{time_total}' "$url" 2>"$tmp/err") || true
+  [ -n "$out" ] || out="000 0"
   code=${out%% *}
   if [ "$code" = 405 ] || [ "$code" = 403 ] || [ "$code" = 501 ]; then
-    out=$(curl -sS -L --max-time 60 --connect-timeout 20 -A "$UA" -r 0-1023 -D "$tmp/headers" -o /dev/null -w '%{http_code} %{time_total}' "$url" 2>"$tmp/err") || out="000 0"
+    out=$(curl -sS -L --max-time 30 --connect-timeout 15 --max-filesize 1048576 -A "$UA" -r 0-1023 -D "$tmp/headers" -o /dev/null \
+      -w '%{http_code} %{time_total}' "$url" 2>"$tmp/err") || true
+    [ -n "$out" ] || out="000 0"
     code=${out%% *}
   fi
   ms=$(awk -v t="${out#* }" 'BEGIN {printf "%d", t * 1000}')
@@ -44,9 +50,10 @@ record() { # source url state ms detail
 }
 
 # check SOURCE URL [function that checks the response further and sets detail; returns non-zero on a failure]
+# Env for one call: TRIES (default 3), FAIL_STATE (default fail).
 check() {
-  local source=$1 url=$2 test=${3:-} try
-  for try in 1 2 3; do
+  local source=$1 url=$2 test=${3:-} try tries=${TRIES:-3}
+  for ((try = 1; try <= tries; try++)); do
     detail=
     probe "$url"
     if [[ "$code" =~ ^2 ]] && { [ -z "$test" ] || "$test" "$url"; }; then
@@ -54,7 +61,7 @@ check() {
       return 0
     fi
     [ -n "$detail" ] || detail="HTTP $code $(head -c 200 "$tmp/err" | tr '\n\t' '  ')"
-    [ "$try" -lt 3 ] && sleep $((try * DELAY))
+    [ "$try" -lt "$tries" ] && sleep $((try * DELAY))
   done
   record "$source" "$url" "${FAIL_STATE:-fail}" "$ms" "$detail"
   return 1
@@ -108,8 +115,8 @@ else
 fi
 
 # 3. Geofabrik (osm_source=geofabrik): the index and one small extract.
-FAIL_STATE=warn check "Geofabrik: index" "https://download.geofabrik.de/index-v1-nogeom.json"
-FAIL_STATE=warn check "Geofabrik: extrakt" "https://download.geofabrik.de/europe/monaco-latest.osm.pbf"
+FAIL_STATE=warn TRIES=1 check "Geofabrik: index" "https://download.geofabrik.de/index-v1-nogeom.json"
+FAIL_STATE=warn TRIES=1 check "Geofabrik: extrakt" "https://download.geofabrik.de/europe/monaco-latest.osm.pbf"
 
 # 4. Copernicus GLO-30: the tile list and one tile.
 check "Copernicus: tileList.txt" "$COPERNICUS/tileList.txt"
@@ -147,17 +154,5 @@ if [ -n "${TEST_URL:-}" ]; then
   check "test (vstup test_url)" "$TEST_URL"
 fi
 
-failed=$(awk -F'\t' '$3 == "fail"' "$results" | wc -l)
-warned=$(awk -F'\t' '$3 == "warn"' "$results" | wc -l)
-total=$(wc -l < "$results")
-{
-  echo "### Dostupnost zdrojů map"
-  echo
-  echo "Dostupné: $((total - failed - warned)) z $total, nedostupné: $failed, varování: $warned (Geofabrik je jen záložní zdroj a výpadek neohlašuje)."
-  echo
-  echo "| Zdroj | URL | Stav | Čas | Podrobnosti |"
-  echo "|---|---|---|---|---|"
-  awk -F'\t' '{printf "| %s | %s | %s | %s ms | %s |\n", $1, $2, ($3 == "ok" ? "dostupný" : ($3 == "warn" ? "varování: nedostupný" : "**nedostupný**")), $4, $5}' "$results"
-} > "$OUT/summary.md"
-echo "$((total - failed - warned)) of $total sources available, $failed unavailable, $warned warnings"
-awk -F'\t' '$3 == "warn" {printf "::warning::%s unavailable: %s\n", $1, $5}' "$results"
+touch "$OUT/done"
+"$D/sources-summary.sh"

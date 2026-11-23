@@ -27,14 +27,15 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The results are written as the checks run; a check step that times out is reported as an outage by the next step.
       - name: Check the sources
+        timeout-minutes: 20
         env:
           OUT: ${{ runner.temp }}/sources
           TEST_URL: ${{ inputs.test_url }}
-        run: |
-          scripts/sources-check.sh
-          cat "$OUT/summary.md" >> "$GITHUB_STEP_SUMMARY"
+        run: scripts/sources-check.sh
       - name: Report in an issue
+        if: ${{ always() }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OUT: ${{ runner.temp }}/sources
