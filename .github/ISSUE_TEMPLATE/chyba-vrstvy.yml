@@ -1,0 +1,80 @@
+name: Chyba v mapě nebo vrstvě
+description: Něco ve vrstvě (trasy, vrstevnice, výšková data), v tématu nebo v katalogu chybí nebo je špatně.
+title: "Chyba: "
+labels: ["chyba"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Děkujeme za hlášení. Chyby samotného programu GeoKuk patří do [geokuk-community/geokuk](https://github.com/geokuk-community/geokuk/issues).
+        Chyby v datech OpenStreetMap (chybějící nebo špatně zakreslená cesta, značka) je nejlepší opravit přímo v OpenStreetMap; do vrstev se dostanou s dalším vydáním.
+  - type: input
+    id: region
+    attributes:
+      label: Region
+      description: Klíč regionu jako u map mapsforge.
+      placeholder: europe/czech-republic
+    validations:
+      required: true
+  - type: dropdown
+    id: vrstva
+    attributes:
+      label: Vrstva
+      options:
+        - tourist (trasy a turistické body)
+        - contours (vrstevnice)
+        - dem (výšková data, stínování)
+        - téma (GeoKuk-tema.zip nebo GeoKuk-tema-PAWS.zip)
+        - katalog (layers.json, stahování)
+    validations:
+      required: true
+  - type: input
+    id: vydani
+    attributes:
+      label: Vydání
+      description: Tag vydání, ze kterého vrstva pochází (ve Správě map nebo v názvu vydání).
+      placeholder: layers-2026-11
+    validations:
+      required: true
+  - type: input
+    id: misto
+    attributes:
+      label: Místo
+      description: Souřadnice nebo odkaz na místo (např. na mapy.cz nebo openstreetmap.org).
+      placeholder: 50.7360, 15.7400
+    validations:
+      required: true
+  - type: input
+    id: zoom
+    attributes:
+      label: Zoom
+      placeholder: "15"
+  - type: dropdown
+    id: aplikace
+    attributes:
+      label: Aplikace
+      options:
+        - GeoKuk
+        - c:geo
+        - aDrake
+        - jiná
+    validations:
+      required: true
+  - type: input
+    id: tema
+    attributes:
+      label: Téma a verze aplikace
+      description: Které téma vykreslení používáte a verze aplikace.
+      placeholder: GeoKuk 6.5.0, téma GeoKuk
+  - type: textarea
+    id: popis
+    attributes:
+      label: Co je špatně
+      description: Co vidíte a co byste čekali.
+    validations:
+      required: true
+  - type: textarea
+    id: snimek
+    attributes:
+      label: Snímek obrazovky
+      description: Sem můžete vložit nebo přetáhnout obrázek.
