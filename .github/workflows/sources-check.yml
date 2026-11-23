@@ -35,7 +35,7 @@ jobs:
           TEST_URL: ${{ inputs.test_url }}
         run: scripts/sources-check.sh
       - name: Report in an issue
-        if: ${{ always() }}
+        if: ${{ !cancelled() }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OUT: ${{ runner.temp }}/sources

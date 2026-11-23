@@ -3,7 +3,7 @@
 # label LABEL, assigned to ASSIGNEE, or, when such an issue is already open, adds a comment with the new run. When every source is
 # available again and an open issue exists, it adds the comment "Zdroje jsou znovu dostupné", unless the last comment of this workflow
 # in the issue already says so. It never closes the issue. It first writes the summary (scripts/sources-summary.sh), so that a check
-# step that timed out (no OUT/done) is reported as an outage; the workflow runs it with if: always().
+# step that timed out (no OUT/done) is reported as an outage; the workflow runs it unless the run was cancelled.
 # Env: GH_TOKEN, GITHUB_REPOSITORY, OUT (with results.tsv of scripts/sources-check.sh), RUN_URL; optional LABEL (default zdroje),
 # ASSIGNEE, TEST_URL, GITHUB_STEP_SUMMARY.
 set -euo pipefail

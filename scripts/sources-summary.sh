@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Writes OUT/summary.md (table in Czech) from OUT/results.tsv of scripts/sources-check.sh. When OUT/done is missing (the check step
-# timed out or stopped), it first adds the row "kontrola nedoběhla", which counts as an outage. With GITHUB_STEP_SUMMARY set, the table
-# is also added to the run summary. Env: OUT.
+# timed out or stopped), it first adds the row "kontrola nedoběhla", which counts as an outage. It writes only the file;
+# scripts/sources-issue.sh adds the table to the run summary. Env: OUT.
 set -euo pipefail
 : "${OUT:?}"
 results="$OUT/results.tsv"
