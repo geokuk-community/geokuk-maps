@@ -21,7 +21,8 @@ Env: CUZK_ATOM (file with the ATOM feed instead of downloading it)."""
 import hashlib, json, math, os, re, sys, time, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MANIFEST = os.path.join(ROOT, 'mapping', 'dem-manifest.json')
+# DEM_MANIFEST replaces the manifest for the tests (tests/themes/run.sh).
+MANIFEST = os.environ.get('DEM_MANIFEST') or os.path.join(ROOT, 'mapping', 'dem-manifest.json')
 TILES = os.path.join(ROOT, 'mapping', 'copernicus-tilelist.txt')
 POLY = os.path.join(ROOT, 'mapping', 'poly')
 CUZK_REGIONS = {'europe/czech-republic'}  # as DEM_CUZK in build-region.sh

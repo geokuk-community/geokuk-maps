@@ -7,7 +7,8 @@
   compat layers.json               only the catalogue rules: what GeoKuk 6.5.0 (KatalogVrstev) needs and the theme theme/geokuk
   map-assets layers.json tag dir   prints "<release> <asset id> <name>" of every tourist and contours .map in layers.json, with
                                    dir/<tag>.assets.json for this release and dir/<release>.assets.json for older ones
-  previous releases.json tag       prints "<id> <tag>" of the newest published release layers-* older than tag (nothing for the first one)
+  previous releases.json tag       prints "<id> <tag>" of the newest published monthly release layers-YYYY-MM[a-z] older than tag
+                                   (nothing for the first one); tags with a suffix after a dash (layers-2026-11-split) are tests
   compare layers.json previous.json   fails when a layer id of the previous release is missing, unless mapping/removed-layers.txt
                                    (or the file in REMOVED_LAYERS) lists it
   other-tags layers.json tag       prints the other releases that layers.json points to (dem and contours kept from an older release)
@@ -219,7 +220,7 @@ def main():
     elif cmd == 'previous':
         tag = sys.argv[3]
         older = sorted((r['tag_name'], r['id']) for r in load(sys.argv[2]) if not r.get('draft')
-                       and re.fullmatch(r'layers-[0-9]{4}-[0-9]{2}[a-z0-9-]*', r.get('tag_name', '')) and r['tag_name'] < tag)
+                       and re.fullmatch(r'layers-[0-9]{4}-[0-9]{2}[a-z]?', r.get('tag_name', '')) and r['tag_name'] < tag)
         if older:
             print(older[-1][1], older[-1][0])
     elif cmd == 'compare':

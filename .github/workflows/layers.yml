@@ -25,7 +25,7 @@ on:
         options: [auto, ram, hd]
         default: auto
       publish:
-        description: "none = artifacts only, draft = upload to a draft release, release = build, upload and publish (main only), finalize = verify the draft release and publish it without building (main only), check = the same verification without publishing"
+        description: "none = artifacts only, draft = upload to a draft release, release = build, upload and publish after the checks of finalize (main only), finalize = verify the draft release and publish it without building (main only), check = the same verification without publishing"
         type: choice
         options: [none, draft, release, finalize, check]
         default: none
@@ -590,6 +590,15 @@ jobs:
           TAG: ${{ inputs.tag }}
           DIR: ${{ github.workspace }}/upload
         run: scripts/publish.sh
+      # publish=release publishes through the checks of finalize (scripts/finalize.sh), never straight from publish.sh.
+      - name: Verify and publish the release
+        if: ${{ inputs.publish == 'release' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          [ -n "$TAG" ] || { echo "The step Release did not report its tag" >&2; exit 1; }
+          scripts/finalize.sh
 
   # After publish=draft, the same verification as publish=check on the draft just written (finalize.sh with DRY_RUN=1):
   # it publishes nothing; a failure shows that the draft is not ready for finalize.
