@@ -38,6 +38,10 @@ check geokuk "$work/dead.zip" --tags "$T/tags.txt" | tee "$work/out.txt"
 for w in 'fmrelbicyclebrown=* (way)' 'fmrelbicycleorange=* (way)' 'fmrelmtbpurple=* (way)' 'fmrelhikingred=purple (way)'; do
   grep -qF "::warning::pravidlo tématu, které vrstva nevytváří (nekreslí se): $w" "$work/out.txt" || fail "no warning for $w"
 done
+# Only tags of the layer family get this warning; rules for the base map (highway, natural=peak in the fixture) are left out.
+if grep 'pravidlo tématu' "$work/out.txt" | grep -vqE ': (fmrel|contour_ext)'; then
+  fail "a theme rule outside fmrel*/contour_ext is reported as a rule that the layers never write"
+fi
 echo "ok: rules that the layers never draw are warnings"
 # A tag of the mapping that the theme draws but no header has (the release lacks it) stays an error, next to the warnings.
 grep -v 'contour_ext=elevation_medium' "$T/tags.txt" > "$work/tags.txt"
