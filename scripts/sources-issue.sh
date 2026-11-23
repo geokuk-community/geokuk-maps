@@ -9,6 +9,10 @@ LABEL=${LABEL:-zdroje}
 TITLE="Nedostupné zdroje map"
 results="$OUT/results.tsv"
 [ -s "$results" ] || { echo "No results in $results" >&2; exit 1; }
+if [ "$(gh api "repos/$GITHUB_REPOSITORY" --jq .has_issues)" != true ]; then
+  echo "::error::Issues are disabled in $GITHUB_REPOSITORY (Settings, General, Features); the result is only in the run summary"
+  exit 1
+fi
 failed=$(awk -F'\t' '$3 == "fail" {print $1}' "$results" | paste -sd ',' - | sed 's/,/, /g')
 gh label list --repo "$GITHUB_REPOSITORY" --limit 200 --json name --jq '.[].name' | grep -qxF "$LABEL" \
   || gh label create "$LABEL" --repo "$GITHUB_REPOSITORY" --color d93f0b --description "Dostupnost zdrojů map (workflow Sources check)"
