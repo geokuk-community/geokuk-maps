@@ -88,7 +88,5 @@ for f in "$DIR"/*/*.map "$DIR"/*/*.dem*.zip "$DIR"/*/*.poly "$DIR"/themes/*.zip 
   done
   echo "uploaded $name"
 done
-if [ "$MODE" = release ]; then
-  api -X PATCH "repos/$GITHUB_REPOSITORY/releases/$ID" -F draft=false -F make_latest=true > /dev/null
-  echo "Release $TAG published"
-fi
+# MODE=release does not publish here: the job publish of layers.yml runs scripts/finalize.sh next, which publishes the draft only when
+# all its checks pass (the same as finalize).

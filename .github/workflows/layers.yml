@@ -25,7 +25,7 @@ on:
         options: [auto, ram, hd]
         default: auto
       publish:
-        description: "none = artifacts only, draft = upload to a draft release, release = build, upload and publish (main only), finalize = verify the draft release and publish it without building (main only), check = the same verification without publishing"
+        description: "none = artifacts only, draft = upload to a draft release, release = build, upload and publish after the checks of finalize (main only), finalize = verify the draft release and publish it without building (main only), check = the same verification without publishing"
         type: choice
         options: [none, draft, release, finalize, check]
         default: none
@@ -116,11 +116,10 @@ jobs:
           print('whole=' + json.dumps(sorted({r for r in regions if ':' not in r})))
           PY
       # A pull request uses the OSM samples in tests/osm, so that its checks need neither the whole planet nor Geofabrik;
-      # it falls back to Geofabrik while a sample is missing.
+      # a missing sample is an error.
       - id: osm
         env:
           OSM_SOURCE: ${{ inputs.osm_source || 'sample' }}
-          EVENT: ${{ github.event_name }}
           PLANET: ${{ inputs.planet }}
           REGIONS: ${{ steps.list.outputs.borders }}
           SKIP: ${{ contains(fromJSON('["finalize", "check"]'), inputs.publish) || inputs.from_run != '' }}
@@ -133,11 +132,9 @@ jobs:
             missing=$(python3 -c 'import json,os; [print(r) for r in json.loads(os.environ["REGIONS"])["region"] if not os.path.isfile("tests/osm/%s.osm.pbf" % r.split("=")[0].replace("/", "_"))]')
             if [ -z "$missing" ]; then
               echo "osm=sample" >> "$GITHUB_OUTPUT"
-            elif [ "$EVENT" = pull_request ]; then
-              echo "::warning::No OSM sample in tests/osm for: $missing; using Geofabrik"
-              echo "osm=geofabrik" >> "$GITHUB_OUTPUT"
             else
-              echo "No OSM sample in tests/osm for: $missing (workflow OSM test sample)" >&2
+              # No fallback to Geofabrik: it was mostly unreachable from the runners (Sources check, #35).
+              echo "::error::No OSM sample in tests/osm for: $missing; add it with the workflow OSM test sample (.github/workflows/osm-sample.yml) from a Layers run with osm_source=aws" >&2
               exit 1
             fi
             exit 0
@@ -610,6 +607,15 @@ jobs:
           TAG: ${{ inputs.tag }}
           DIR: ${{ github.workspace }}/upload
         run: scripts/publish.sh
+      # publish=release publishes through the checks of finalize (scripts/finalize.sh), never straight from publish.sh.
+      - name: Verify and publish the release
+        if: ${{ inputs.publish == 'release' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          [ -n "$TAG" ] || { echo "The step Release did not report its tag" >&2; exit 1; }
+          scripts/finalize.sh
 
   # After publish=draft, the same verification as publish=check on the draft just written (finalize.sh with DRY_RUN=1):
   # it publishes nothing; a failure shows that the draft is not ready for finalize.

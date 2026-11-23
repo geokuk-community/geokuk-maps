@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Stub of curl for map-header.sh in the test of finalize.sh: writes the map header $STATE/header.map to the file of -o.
+out=
+while [ $# -gt 0 ]; do case $1 in -o) out=$2; shift 2;; *) shift;; esac; done
+cp "$STATE/header.map" "$out"

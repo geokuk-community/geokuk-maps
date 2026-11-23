@@ -153,6 +153,52 @@ assert new['layers'] == old['layers'] and new['sources'] == old['sources'] and n
 assert [(t['id'], t['files'][0]['url']) for t in new['themes']] == [('theme/geokuk', 'layers-2026-11/GeoKuk-tema.zip')], new['themes']
 print('ok: themes added to the draft, its layers unchanged')
 PY
+# A layer of the previous release that is missing in the new layers.json fails, unless mapping/removed-layers.txt lists it.
+python3 "$R/scripts/finalize-check.py" compare "$T/layers.json" "$T/layers.json"
+python3 -I -c 'import json,sys; c=json.load(open(sys.argv[1])); c["layers"]=[x for x in c["layers"] if x["id"] != "tourist/europe/monaco"]; json.dump(c, open(sys.argv[2], "w"))' \
+  "$T/layers.json" "$work/fewer.json"
+expect_fail '1 layer(s) of the previous release are missing (omitted at 2 GiB, a failed build, or removed: then list them in mapping/removed-layers.txt): tourist/europe/monaco' \
+  python3 "$R/scripts/finalize-check.py" compare "$work/fewer.json" "$T/layers.json"
+printf '# test\ntourist/europe/monaco\n' > "$work/removed.txt"
+REMOVED_LAYERS="$work/removed.txt" python3 "$R/scripts/finalize-check.py" compare "$work/fewer.json" "$T/layers.json"
+# The previous release is the newest published layers-* older than the draft; drafts and other tags do not count.
+printf '[{"id": 1, "tag_name": "layers-2026-11", "draft": false}, {"id": 2, "tag_name": "layers-2026-10f", "draft": false}, {"id": 3, "tag_name": "layers-2026-11-split", "draft": true}, {"id": 4, "tag_name": "layers-2026-12", "draft": true}, {"id": 5, "tag_name": "v1", "draft": false}]\n' > "$work/releases.json"
+[ "$(python3 "$R/scripts/finalize-check.py" previous "$work/releases.json" layers-2026-12)" = "1 layers-2026-11" ] || fail "wrong previous release"
+[ -z "$(python3 "$R/scripts/finalize-check.py" previous "$work/releases.json" layers-2026-10)" ] || fail "a previous release before the first one"
+# omit-large.py warns about a file of at least 1.6 GiB and keeps its layer; at 2 GiB the layer is omitted.
+python3 -I -c 'import json,sys; c=json.load(open(sys.argv[1])); c["layers"][0]["files"][0]["size"]=int(1.7*1024**3); c["layers"][1]["files"][0]["size"]=2*1024**3; json.dump(c, open(sys.argv[2], "w"))' \
+  "$T/layers.json" "$work/large.json"
+python3 "$R/scripts/omit-large.py" "$work/large.json" > "$work/out.txt"
+grep -q '::warning::.*1.70 GiB, close to the 2 GiB limit' "$work/out.txt" || { cat "$work/out.txt"; fail "no warning at 1.7 GiB"; }
+grep -q '::warning::omitted: .*2.00 GiB' "$work/out.txt" || { cat "$work/out.txt"; fail "a 2 GiB layer is not omitted"; }
+echo "ok: previous release, missing layers and large files"
+
+# finalize.sh end to end (DRY_RUN=1) against stubs of gh and curl: draft layers-2026-12 with the layers of the fixture (in older
+# releases) and theme/geokuk, previous release layers-2026-11. It must pass, and fail when a layer of layers-2026-11 is missing
+# in the draft; that also shows that finalize.sh runs the comparison. layers-2026-11-split (a test tag) is never the previous release.
+mkdir -p "$work/fin/themes"
+cp "$work/themes/GeoKuk-tema.zip" "$work/themes/GeoKuk-tema-PAWS.zip" "$work/fin/themes/"
+(cd "$work/fin/themes" && for z in GeoKuk-tema.zip GeoKuk-tema-PAWS.zip; do sha256sum "$z" > "$z.sha256"; done)
+cp "$work/themes/themes.meta.json" "$work/fin/themes/"
+cp "$T/layers.json" "$work/fin/draft.json"
+python3 "$R/scripts/theme-catalog.py" "$work/fin/draft.json" "$work/fin/themes" layers-2026-12 > /dev/null
+python3 -I -c 'import json,sys; c=json.load(open(sys.argv[1])); json.dump({"regions": {l["region"]: {"dem": "layers-2026-10e", "contours": "layers-2026-10e"} for l in c["layers"] if l["type"] == "dem"}}, open(sys.argv[2], "w"))' \
+  "$T/layers.json" "$work/fin/manifest.json"
+finalize() { # $1 = previous layers.json
+  rm -rf "$work/fin/state"
+  python3 "$T/finalize-state.py" "$work/fin/state" "$work/fin/draft.json" "$work/fin/themes" "$1" "$T/tags.txt"
+  PATH="$T/stub-finalize:$PATH" STATE="$work/fin/state" DEM_MANIFEST="$work/fin/manifest.json" GH_TOKEN=x GITHUB_REPOSITORY=o/r \
+    TAG=layers-2026-12 DRY_RUN=1 bash "$R/scripts/finalize.sh"
+}
+finalize "$T/layers.json" > "$work/out.txt" 2>&1 || { cat "$work/out.txt"; fail "finalize.sh failed on a complete draft"; }
+grep -q 'Previous release layers-2026-11$' "$work/out.txt" || { cat "$work/out.txt"; fail "finalize.sh did not compare with layers-2026-11"; }
+grep -q 'Dry run: all checks passed' "$work/out.txt" || { cat "$work/out.txt"; fail "finalize.sh did not finish its checks"; }
+[ ! -e "$work/fin/state/patched" ] || fail "finalize.sh published in a dry run"
+python3 -I -c 'import json,sys; c=json.load(open(sys.argv[1])); c["layers"].append(dict(c["layers"][0], id="tourist/europe/andorra")); json.dump(c, open(sys.argv[2], "w"))' \
+  "$T/layers.json" "$work/fin/previous-more.json"
+expect_fail '1 layer(s) of the previous release are missing (omitted at 2 GiB, a failed build, or removed: then list them in mapping/removed-layers.txt): tourist/europe/andorra' \
+  finalize "$work/fin/previous-more.json"
+echo "ok: finalize.sh compares the draft with the previous release"
 # theme-fetch.sh stops before any download when the GeoKuk release lacks a theme or its .sha256, with a hint for the input geokuk
 # (GeoKuk 6.4.3, the latest release in November 2026, has neither ZIP).
 printf '{"tag_name": "v6.4.3", "published_at": "2026-10-01T00:00:00Z", "html_url": "https://example.invalid/v6.4.3", "assets": [{"name": "GeoKuk-tema.zip"}, {"name": "GeoKuk-tema.zip.sha256"}]}\n' > "$work/release.json"

@@ -18,6 +18,15 @@ api "repos/$GITHUB_REPOSITORY/releases/$ID/assets" --paginate > "$work/assets.js
 aid=$(python3 "$R/scripts/finalize-check.py" asset-id "$work/assets.json" layers.json)
 api -H "Accept: application/octet-stream" "repos/$GITHUB_REPOSITORY/releases/assets/$aid" > "$work/layers.json"
 python3 "$R/scripts/finalize-check.py" verify "$work/layers.json" "$work/assets.json" "$TAG"
+# Every layer of the previous release must still be there (a layer omitted at 2 GiB or a failed region would vanish from GeoKuk).
+read -r pid ptag < <(python3 "$R/scripts/finalize-check.py" previous "$work/releases.json" "$TAG") || true
+if [ -n "${pid:-}" ]; then
+  api "repos/$GITHUB_REPOSITORY/releases/$pid/assets" --paginate > "$work/previous-assets.json"
+  paid=$(python3 "$R/scripts/finalize-check.py" asset-id "$work/previous-assets.json" layers.json)
+  api -H "Accept: application/octet-stream" "repos/$GITHUB_REPOSITORY/releases/assets/$paid" > "$work/previous-layers.json"
+  echo "Previous release $ptag"
+  python3 "$R/scripts/finalize-check.py" compare "$work/layers.json" "$work/previous-layers.json"
+fi
 # Dem and contours kept from older releases (mapping/dem-manifest.json): those releases must still hold the files.
 mkdir -p "$work/other"
 cp "$work/releases.json" "$work/other/releases.json"
