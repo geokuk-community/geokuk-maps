@@ -40,7 +40,7 @@ body:
     id: misto
     attributes:
       label: Místo
-      description: Souřadnice nebo odkaz na místo (např. na mapy.cz nebo openstreetmap.org).
+      description: Souřadnice nebo odkaz na místo (např. z OpenStreetMap).
       placeholder: 50.7360, 15.7400
     validations:
       required: true
