@@ -122,4 +122,26 @@ ALLOW_NO_DIGEST=1 python3 "$R/scripts/finalize-check.py" verify "$work/layers.js
 ! grep -q 'not referenced' "$work/out.txt" || fail "a theme asset is reported as unreferenced"
 python3 -I -c 'import json,sys; a=json.load(open(sys.argv[1])); json.dump([x for x in a if x["name"] != "GeoKuk-tema-PAWS.zip.sha256"], open(sys.argv[1], "w"))' "$work/assets.json"
 expect_fail 'theme asset GeoKuk-tema-PAWS.zip.sha256 missing' python3 "$R/scripts/finalize-check.py" verify "$work/layers.json" "$work/assets.json" layers-2026-12
+# publish.sh with the themes only, on a draft release made before the themes (layers.json without "themes"), as themes.yml does
+# for layers-2026-11: both ZIPs and their .sha256 are uploaded, layers.json gets theme/geokuk only and keeps its layers.
+mkdir -p "$work/stub/assets" "$work/upload/themes"
+cp "$T/layers.json" "$work/stub/assets/layers.json"
+echo licence > "$work/stub/assets/LICENSES.txt"
+cp "$work/themes/GeoKuk-tema.zip" "$work/themes/GeoKuk-tema-PAWS.zip" "$work/upload/themes/"
+(cd "$work/upload/themes" && for z in GeoKuk-tema.zip GeoKuk-tema-PAWS.zip; do sha256sum "$z" > "$z.sha256"; done)
+printf '{"geokuk": "v6.5.0-beta.36", "geokukVersion": "6.5.0-beta.36", "date": "2026-11-23", "source": "https://github.com/geokuk-community/geokuk/releases/tag/v6.5.0-beta.36"}\n' \
+  > "$work/upload/themes/themes.meta.json"
+PATH="$T/stub:$PATH" STATE="$work/stub" GH_TOKEN=x GITHUB_REPOSITORY=o/r MODE=draft TAG=layers-2026-11 DIR="$work/upload" \
+  bash "$R/scripts/publish.sh"
+for name in GeoKuk-tema.zip GeoKuk-tema.zip.sha256 GeoKuk-tema-PAWS.zip GeoKuk-tema-PAWS.zip.sha256 layers.json; do
+  [ -s "$work/stub/assets/$name" ] || fail "publish.sh did not upload $name"
+done
+python3 "$R/scripts/finalize-check.py" compat "$work/stub/assets/layers.json"
+python3 -I - "$T/layers.json" "$work/stub/assets/layers.json" <<'PY'
+import json, sys
+old, new = (json.load(open(p, encoding='utf-8')) for p in sys.argv[1:3])
+assert new['layers'] == old['layers'] and new['sources'] == old['sources'] and new['version'] == 1, 'the draft layers changed'
+assert [(t['id'], t['files'][0]['url']) for t in new['themes']] == [('theme/geokuk', 'layers-2026-11/GeoKuk-tema.zip')], new['themes']
+print('ok: themes added to the draft, its layers unchanged')
+PY
 echo "All theme and catalogue checks passed"
