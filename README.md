@@ -63,6 +63,14 @@ The catalogue of all files, with sizes, SHA-256 checksums and dates, is always a
 GeoKuk downloads layers through **Maps → Map management** and stores them in its `layers/` folder,
 using the same folder structure as the base maps.
 
+### Reporting problems
+
+Problems in a layer, a theme or the catalogue (a wrong or missing route, contour line or point, a file that does not download)
+are reported as an [issue of this repository](https://github.com/geokuk-community/geokuk-maps/issues/new/choose) with the form
+"Chyba v mapě nebo vrstvě"; new regions and improvements with "Nový region nebo vylepšení vrstvy". Problems of the GeoKuk program
+belong to [geokuk-community/geokuk](https://github.com/geokuk-community/geokuk/issues). Data errors of OpenStreetMap are best fixed
+in OpenStreetMap; the layers take them over with the next release.
+
 ### Themes
 
 Every release also carries the render themes of GeoKuk from a release of
@@ -150,6 +158,10 @@ GeoKuk je stahuje sám v okně **Mapy → Správa map**. Ručně stažené soubo
 se stejnou strukturou podsložek, jakou mají mapy. GeoKuk je kreslí vestavěným tématem **GeoKuk**
 (přehledná turistická mapa): značené trasy v barvách značení s názvy oficiálních tras, skály,
 vyhlídky, rozcestníky, kříže, vodopády, vrstevnice po 10 m a stínování terénu.
+
+Chyby ve vrstvách, tématech a katalogu se hlásí v [issues tohoto repozitáře](https://github.com/geokuk-community/geokuk-maps/issues/new/choose)
+formulářem „Chyba v mapě nebo vrstvě“, návrhy formulářem „Nový region nebo vylepšení vrstvy“. Chyby programu GeoKuk patří do
+[geokuk-community/geokuk](https://github.com/geokuk-community/geokuk/issues).
 
 Každé vydání obsahuje i témata GeoKuku z vydání geokuk-community/geokuk: `GeoKuk-tema.zip` k mapám a vrstvám GeoKuku
 a `GeoKuk-tema-PAWS.zip` k mapám osm.paws.cz, vždy na adrese

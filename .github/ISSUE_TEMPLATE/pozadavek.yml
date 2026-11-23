@@ -1,0 +1,40 @@
+name: Nový region nebo vylepšení vrstvy
+description: Návrh nového regionu, nových prvků ve vrstvě nebo jiného vylepšení.
+title: "Návrh: "
+labels: ["návrh"]
+body:
+  - type: dropdown
+    id: druh
+    attributes:
+      label: Druh návrhu
+      options:
+        - nový region
+        - nové prvky ve vrstvě
+        - změna vzhledu v tématu
+        - jiné vylepšení
+    validations:
+      required: true
+  - type: input
+    id: region
+    attributes:
+      label: Region
+      description: Klíč regionu jako u map mapsforge, pokud se návrh týká regionu.
+      placeholder: europe/slovakia
+  - type: dropdown
+    id: vrstva
+    attributes:
+      label: Vrstva
+      options:
+        - tourist (trasy a turistické body)
+        - contours (vrstevnice)
+        - dem (výšková data, stínování)
+        - téma
+        - katalog
+        - netýká se vrstvy
+  - type: textarea
+    id: popis
+    attributes:
+      label: Návrh
+      description: Co navrhujete a k čemu to bude. U nových prvků uveďte značky OpenStreetMap (např. tourism=viewpoint), pokud je znáte.
+    validations:
+      required: true
