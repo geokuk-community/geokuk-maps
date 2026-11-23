@@ -7,6 +7,10 @@ name: Sources check
 on:
   schedule:
     - cron: "17 5 * * 1,4"
+  # TEMPORARY for the test of this pull request (a new workflow cannot be dispatched before it is on main); removed before review.
+  pull_request:
+    paths:
+      - ".github/workflows/sources-check.yml"
   workflow_dispatch:
     inputs:
       test_url:
@@ -30,7 +34,7 @@ jobs:
       - name: Check the sources
         env:
           OUT: ${{ runner.temp }}/sources
-          TEST_URL: ${{ inputs.test_url }}
+          TEST_URL: ${{ inputs.test_url || (github.event_name == 'pull_request' && 'https://download.mapsforge.org/maps/v5/europe/test-neexistuje.map' || '') }}
         run: |
           scripts/sources-check.sh
           cat "$OUT/summary.md" >> "$GITHUB_STEP_SUMMARY"
@@ -40,5 +44,5 @@ jobs:
           OUT: ${{ runner.temp }}/sources
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           ASSIGNEE: tomas7744
-          TEST_URL: ${{ inputs.test_url }}
+          TEST_URL: ${{ inputs.test_url || (github.event_name == 'pull_request' && 'https://download.mapsforge.org/maps/v5/europe/test-neexistuje.map' || '') }}
         run: scripts/sources-issue.sh
