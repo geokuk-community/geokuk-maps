@@ -53,6 +53,8 @@ on:
       - "scripts/**"
       - "mapping/**"
       - "tests/themes/**"
+      - "tests/workflows/**"
+      - ".github/workflows/themes.yml"
 
 permissions:
   contents: read
@@ -77,6 +79,9 @@ jobs:
       - name: Check the themes and the catalogue (fixtures in tests/themes)
         if: ${{ github.event_name == 'pull_request' }}
         run: tests/themes/run.sh
+      - name: Check that every step running finalize.sh passes TAG
+        if: ${{ github.event_name == 'pull_request' }}
+        run: python3 tests/workflows/finalize-tag.py .github/workflows/*.yml
       - name: Check the expansion of regions=all
         if: ${{ github.event_name == 'pull_request' }}
         run: |
@@ -626,6 +631,7 @@ jobs:
       - name: Verify and publish the draft release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag }}
         run: scripts/finalize.sh
 
   check:
