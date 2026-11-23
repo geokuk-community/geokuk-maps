@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Checks the GeoKuk themes (render themes in a ZIP) against the layers.
   geokuk theme.zip [--tags tags.txt] [--notice]
-      The rules of the theme whose tags belong to the layers must find those tags in the layers: a key=value of mapping/tourist.xml or
-      mapping/contours.xml, or a key that only the layers have (fmrel*, contour_ext). With --tags (lines "poi key=value" / "way key=value"
-      from scripts/map-tags.py over the headers of every tourist and contours .map of a release) the tag must also be in those headers:
-      the map writer lists only the tags that occur in the data, so the headers of all regions are joined. --notice lists the tags of the
-      layers that the theme does not use. Every src="file:..." must be a file in the ZIP.
+      The rules of the theme whose tags belong to the layers (a key=value of mapping/tourist.xml or mapping/contours.xml, or a key of
+      the family that only the layers have: fmrel*, contour_ext) are checked against the layers.
+      - A tag of the family that the tag mapping does not have (e.g. fmrelbicyclebrown: addfmreltags.pl knows only the colours red,
+        blue, green, yellow, black and white and writes any other as ...default) is a rule that never draws anything: a warning.
+      - With --tags (lines "poi key=value" / "way key=value" from scripts/map-tags.py over the headers of every tourist and contours .map
+        of a release), a tag of the mapping that the theme draws must be in those headers, or the release lacks it: an error. The map
+        writer lists only the tags that occur in the data, so the headers of all regions are joined.
+      --notice lists the tags of the layers that the theme does not use. Every src="file:..." must be a file in the ZIP.
   paws theme.zip
       Only that the ZIP holds a render theme that parses and that every src="file:..." is a file in the ZIP.
 Exit code 1 with the list of problems."""
@@ -105,7 +108,7 @@ def check_geokuk(path, tags_file, notice):
                 wanted.setdefault((k, None), set()).add(kind)
         elif layer_only or (kind, k, v) in mapping:
             wanted.setdefault((k, v), set()).add(kind)
-    missing, checked = [], 0
+    missing, dead, checked = [], [], 0
     for (k, v), kinds in sorted(wanted.items(), key=lambda x: (x[0][0], x[0][1] or '')):
         checked += 1
         if v is None:
@@ -117,10 +120,14 @@ def check_geokuk(path, tags_file, notice):
             ok_maps = present is None or any((kind, k, v) in present for kind in kinds)
             label = '%s=%s' % (k, v)
         if not ok_mapping:
-            missing.append('%s (%s): not in mapping/tourist.xml or mapping/contours.xml' % (label, '/'.join(sorted(kinds))))
+            dead.append('%s (%s)' % (label, '/'.join(sorted(kinds))))
         elif not ok_maps:
             missing.append('%s (%s): in the tag mapping, but in no header of the tourist and contours maps' % (label, '/'.join(sorted(kinds))))
     print('%s: %d render theme(s), %d tags in rules, %d of them belong to the layers' % (path, len(themes), len(used), checked))
+    for d in dead:
+        print('::warning::pravidlo tématu, které vrstva nevytváří (nekreslí se): %s; tag is not in mapping/tourist.xml or mapping/contours.xml' % d)
+    if dead:
+        print('%d theme rule(s) for tags that the layers never write (warnings)' % len(dead))
     if notice and present is not None:
         unused = sorted('%s %s=%s' % p for p in present if not any((p[0], p[1], v) in used for v in (p[2], '*')))
         print('::notice::%d tags of the layers are not used by the theme: %s' % (len(unused), ', '.join(unused[:200])))

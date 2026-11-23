@@ -85,9 +85,11 @@ The GeoKuk release is the input `geokuk` of Layers and Themes: by default the la
 GeoKuk release has both ZIPs (the first one is 6.5.0-beta.36), give the tag explicitly, for example `v6.5.0-beta.36`.
 
 Before anything is published, the workflows check each ZIP against its `.sha256` and the build provenance attestation of the
-GeoKuk release, and check that `GeoKuk-tema.zip` matches the layers: every tag of the layers that the theme draws must be in
-`mapping/tourist.xml` or `mapping/contours.xml` and in the headers of the tourist and contours maps of the release
-(`scripts/theme-check.py`; a missing tag stops the release and is listed). Of `GeoKuk-tema-PAWS.zip` only the loading is checked
+GeoKuk release, and check that `GeoKuk-tema.zip` matches the layers (`scripts/theme-check.py`): every tag of `mapping/tourist.xml`
+or `mapping/contours.xml` that the theme draws must be in the headers of the tourist and contours maps of the release (a missing tag
+stops the release and is listed). A rule for a tag of the layer family (`fmrel*`, `contour_ext`) that the tag mapping does not have,
+such as `fmrelbicyclebrown` (`addfmreltags.pl` knows the route colours red, blue, green, yellow, black and white and writes any other
+as `…default`), draws nothing and is only a warning. Of `GeoKuk-tema-PAWS.zip` only the loading is checked
 (the theme XML parses, every `file:` symbol is in the ZIP). `layers.json` lists `GeoKuk-tema.zip` (id `theme/geokuk`) under the
 top-level key `themes`, next to `layers` (file, size, SHA-256, date, GeoKuk version, the maps the theme is for); `GeoKuk-tema-PAWS.zip`
 is a release asset only and not in the catalogue. `version` stays 1, and GeoKuk 6.5.0 reads only `version`, `sources` and `layers`.

@@ -28,18 +28,23 @@ check geokuk "$work/themes/GeoKuk-tema.zip" --tags "$T/tags.txt" --notice | tee 
 grep -q 'not used by the theme' "$work/out.txt" || fail "no notice about unused tags"
 check paws "$work/themes/GeoKuk-tema-PAWS.zip"
 
-# A tag of the layers that the tag mapping does not have.
-cp -r "$T/geokuk" "$work/bad1"
-sed -i 's/v="major|local|learning"/v="major|local|learning|purple"/' "$work/bad1/GeoKuk.xml"
-zipdir "$work/bad1" "$work/bad1.zip"
-expect_fail 'fmrelhikingred=purple (way): not in mapping' check geokuk "$work/bad1.zip"
-# A key that only the layers would have.
-sed -i 's/k="fmrelhikingblue|fmrelhikinggreen"/k="fmrelhikingblue|fmrelhikingpurple"/' "$work/bad1/GeoKuk.xml"
-zipdir "$work/bad1" "$work/bad1.zip"
-expect_fail 'fmrelhikingpurple=major (way): not in mapping' check geokuk "$work/bad1.zip"
-# In the tag mapping, but in no header (the data of the release do not have it).
+# Rules for tags of the layer family that the layers never write (as GeoKuk-tema.zip of v6.5.0-beta.36: fmrelbicyclebrown/orange/purple,
+# fmrelmtb...; addfmreltags.pl writes other colours as ...default): warnings, the check passes, also against the headers.
+cp -r "$T/geokuk" "$work/dead"
+sed -i 's|</rendertheme>|	<rule e="way" k="fmrelbicyclebrown\|fmrelbicycleorange\|fmrelmtbpurple" v="*">\n		<line stroke="#a05000" stroke-width="1" />\n	</rule>\n</rendertheme>|' "$work/dead/GeoKuk.xml"
+sed -i 's/v="major|local|learning"/v="major|local|learning|purple"/' "$work/dead/GeoKuk.xml"
+zipdir "$work/dead" "$work/dead.zip"
+check geokuk "$work/dead.zip" --tags "$T/tags.txt" | tee "$work/out.txt"
+for w in 'fmrelbicyclebrown=* (way)' 'fmrelbicycleorange=* (way)' 'fmrelmtbpurple=* (way)' 'fmrelhikingred=purple (way)'; do
+  grep -qF "::warning::pravidlo tématu, které vrstva nevytváří (nekreslí se): $w" "$work/out.txt" || fail "no warning for $w"
+done
+echo "ok: rules that the layers never draw are warnings"
+# A tag of the mapping that the theme draws but no header has (the release lacks it) stays an error, next to the warnings.
 grep -v 'contour_ext=elevation_medium' "$T/tags.txt" > "$work/tags.txt"
 expect_fail 'contour_ext=elevation_medium (way): in the tag mapping, but in no header' check geokuk "$work/themes/GeoKuk-tema.zip" --tags "$work/tags.txt"
+expect_fail 'contour_ext=elevation_medium (way): in the tag mapping, but in no header' check geokuk "$work/dead.zip" --tags "$work/tags.txt"
+grep -q 'pravidlo tématu.*fmrelbicyclebrown' "$work/out.txt" || fail "no warning for fmrelbicyclebrown next to the error"
+if grep -q 'tag missing in the layers: fmrelbicyclebrown' "$work/out.txt"; then fail "a rule that draws nothing is reported as an error"; fi
 # A symbol that is not in the ZIP, and a ZIP without a render theme.
 cp -r "$T/paws" "$work/bad2"
 rm "$work/bad2/icons/guidepost.svg"
