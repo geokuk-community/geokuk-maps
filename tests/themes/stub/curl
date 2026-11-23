@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Stub of curl for the same test, the upload only: -T file ...?name=NAME copies the file into $STATE/assets.
+f= url=
+while [ $# -gt 0 ]; do case $1 in -T) f=$2; shift 2;; -H|-X) shift 2;; -*) shift;; *) url=$1; shift;; esac; done
+cp "$f" "$STATE/assets/${url##*name=}"

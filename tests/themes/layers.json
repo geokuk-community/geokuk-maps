@@ -1,0 +1,309 @@
+{
+  "version": 1,
+  "generated": "2026-10-20T00:02:37Z",
+  "sources": [
+    "https://github.com/geokuk-community/geokuk-maps/releases/download/"
+  ],
+  "layers": [
+    {
+      "id": "contours/europe/czech-republic",
+      "type": "contours",
+      "region": "europe/czech-republic",
+      "format": "map",
+      "name": "Contour lines – Czech Republic (10 m)",
+      "files": [
+        {
+          "name": "europe_czech-republic.contours.map",
+          "path": "europe/czech-republic.contours.map",
+          "url": "layers-2026-10e/europe_czech-republic.contours.map",
+          "size": 87556651,
+          "sha256": "ead1ef841dff452bc47e50ebad17b0be03ff370067c6be85ea86f0fdb0080a6a",
+          "date": "2026-10-19T02:09:22Z"
+        }
+      ],
+      "size": 87556651,
+      "dataDate": "2022-05-09",
+      "produced": "2026-10-19T02:09:22Z",
+      "dataSource": "ČÚZK DMR 4G; Copernicus GLO-30 DEM (AWS Open Data) outside the Czech Republic",
+      "zoom": {
+        "min": 12,
+        "max": 21
+      },
+      "contourInterval": 10,
+      "coverage": {
+        "bbox": [
+          48.5429,
+          12.0848,
+          51.0643,
+          18.8632
+        ],
+        "poly": "layers-2026-10e/europe_czech-republic.poly"
+      },
+      "license": "CC BY 4.0 (ČÚZK); Copernicus COP-DEM-GLO-30-F",
+      "attribution": "Contours: Zdroj: ČÚZK, CC BY 4.0; Copernicus DEM GLO-30 © DLR/Airbus, ESA",
+      "attributionFull": "Zdroj: ČÚZK, CC BY 4.0. Copernicus: produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.",
+      "note": "Contours of the Czech Republic come from the ČÚZK DMR 4G terrain model (bare ground).",
+      "licenseText": "Data: Digital Terrain Model of the Czech Republic 4th generation (DMR 4G), Source: ČÚZK, CC BY 4.0\n\nZdroj: ČÚZK, CC BY 4.0. The data were converted to a 1 arc-second grid and, outside the Czech Republic and where DMR 4G has no data, completed from Copernicus DEM GLO-30.\nhttps://creativecommons.org/licenses/by/4.0/\nhttps://geoportal.cuzk.gov.cz\n\nData: Copernicus DEM GLO-30, European Union and ESA (license COP-DEM-GLO-30-F)\n\nProduced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.\n\nThe organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30.\n\nThis layer does not imply endorsement by ESA, Copernicus or Airbus. Anyone who redistributes this layer must comply with the same terms.\nhttps://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/DEM/resources/license/License-COPDEM-30.pdf"
+    },
+    {
+      "id": "contours/europe/monaco",
+      "type": "contours",
+      "region": "europe/monaco",
+      "format": "map",
+      "name": "Contour lines – Monaco (10 m)",
+      "files": [
+        {
+          "name": "europe_monaco.contours.map",
+          "path": "europe/monaco.contours.map",
+          "url": "layers-2026-10e/europe_monaco.contours.map",
+          "size": 11515,
+          "sha256": "118beae58661b58b16a124619a256d39123ffcdd1046fcd8168a7e30b1d7455b",
+          "date": "2026-10-18T22:00:18Z"
+        }
+      ],
+      "size": 11515,
+      "dataDate": "2022-05-09",
+      "produced": "2026-10-18T22:00:18Z",
+      "dataSource": "Copernicus GLO-30 DEM (AWS Open Data)",
+      "zoom": {
+        "min": 12,
+        "max": 21
+      },
+      "contourInterval": 10,
+      "coverage": {
+        "bbox": [
+          43.4838,
+          7.4086,
+          43.7529,
+          7.5957
+        ],
+        "poly": "layers-2026-10e/europe_monaco.poly"
+      },
+      "license": "Copernicus COP-DEM-GLO-30-F",
+      "attribution": "Contours: Copernicus DEM GLO-30 © DLR/Airbus, ESA",
+      "attributionFull": "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30.",
+      "note": "Copernicus DEM is a surface model (includes buildings and forest canopy).",
+      "licenseText": "Data: Copernicus DEM GLO-30, European Union and ESA (license COP-DEM-GLO-30-F)\n\nProduced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.\n\nThe organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30.\n\nThis layer does not imply endorsement by ESA, Copernicus or Airbus. Anyone who redistributes this layer must comply with the same terms.\nhttps://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/DEM/resources/license/License-COPDEM-30.pdf"
+    },
+    {
+      "id": "dem/europe/czech-republic",
+      "type": "dem",
+      "region": "europe/czech-republic",
+      "format": "hgt-zip",
+      "name": "Hillshade elevation data – Czech Republic (HGT 1\")",
+      "files": [
+        {
+          "name": "europe_czech-republic.dem.zip",
+          "path": "europe/czech-republic.dem.zip",
+          "url": "layers-2026-10e/europe_czech-republic.dem.zip",
+          "size": 197866586,
+          "sha256": "c4099dbacef6accbfa9b3415f471322dcda4c4bdc0692f3468b020e3421ead2e",
+          "date": "2026-10-19T01:52:49Z"
+        }
+      ],
+      "size": 197866586,
+      "dataDate": "2022-05-09",
+      "produced": "2026-10-19T01:52:49Z",
+      "dataSource": "ČÚZK DMR 4G; Copernicus GLO-30 DEM (AWS Open Data copernicus-dem-30m) outside the Czech Republic",
+      "coverage": {
+        "bbox": [
+          48.5429,
+          12.0848,
+          51.0643,
+          18.8632
+        ],
+        "poly": "layers-2026-10e/europe_czech-republic.poly"
+      },
+      "license": "CC BY 4.0 (ČÚZK); Copernicus COP-DEM-GLO-30-F",
+      "attribution": "Elevation: Zdroj: ČÚZK, CC BY 4.0; Copernicus DEM GLO-30 © DLR/Airbus, ESA",
+      "attributionFull": "Zdroj: ČÚZK, CC BY 4.0. Copernicus: produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.",
+      "licenseText": "Data: Digital Terrain Model of the Czech Republic 4th generation (DMR 4G), Source: ČÚZK, CC BY 4.0\n\nZdroj: ČÚZK, CC BY 4.0. The data were converted to a 1 arc-second grid and, outside the Czech Republic and where DMR 4G has no data, completed from Copernicus DEM GLO-30.\nhttps://creativecommons.org/licenses/by/4.0/\nhttps://geoportal.cuzk.gov.cz\n\nData: Copernicus DEM GLO-30, European Union and ESA (license COP-DEM-GLO-30-F)\n\nProduced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.\n\nThe organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30.\n\nThis layer does not imply endorsement by ESA, Copernicus or Airbus. Anyone who redistributes this layer must comply with the same terms.\nhttps://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/DEM/resources/license/License-COPDEM-30.pdf"
+    },
+    {
+      "id": "dem/europe/monaco",
+      "type": "dem",
+      "region": "europe/monaco",
+      "format": "hgt-zip",
+      "name": "Hillshade elevation data – Monaco (HGT 1\")",
+      "files": [
+        {
+          "name": "europe_monaco.dem.zip",
+          "path": "europe/monaco.dem.zip",
+          "url": "layers-2026-10e/europe_monaco.dem.zip",
+          "size": 4323043,
+          "sha256": "3778ecb8c1d6eaaa88973b97b7b1905598cecbf4e094bd73184ecdccb2253d31",
+          "date": "2026-10-18T22:52:59Z"
+        }
+      ],
+      "size": 4323043,
+      "dataDate": "2022-05-09",
+      "produced": "2026-10-18T22:52:59Z",
+      "dataSource": "Copernicus GLO-30 DEM (AWS Open Data copernicus-dem-30m)",
+      "coverage": {
+        "bbox": [
+          43.4838,
+          7.4086,
+          43.7529,
+          7.5957
+        ],
+        "poly": "layers-2026-10e/europe_monaco.poly"
+      },
+      "license": "Copernicus COP-DEM-GLO-30-F",
+      "attribution": "Elevation: Copernicus DEM GLO-30 © DLR/Airbus, ESA",
+      "attributionFull": "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved. The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30.",
+      "licenseText": "Data: Copernicus DEM GLO-30, European Union and ESA (license COP-DEM-GLO-30-F)\n\nProduced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.\n\nThe organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30.\n\nThis layer does not imply endorsement by ESA, Copernicus or Airbus. Anyone who redistributes this layer must comply with the same terms.\nhttps://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/DEM/resources/license/License-COPDEM-30.pdf"
+    },
+    {
+      "id": "routes/europe/czech-republic",
+      "type": "routes",
+      "region": "europe/czech-republic",
+      "format": "map",
+      "name": "Hiking, cycling and MTB routes – Czech Republic",
+      "files": [
+        {
+          "name": "europe_czech-republic.routes.map",
+          "path": "europe/czech-republic.routes.map",
+          "url": "layers-2026-10/europe_czech-republic.routes.map",
+          "size": 21712033,
+          "sha256": "3db15d4b12b0e65b5eb97b8b5e0e371eb82b3881e424035ab7cb923ec19ab07b",
+          "date": "2026-10-16T06:08:44Z"
+        }
+      ],
+      "size": 21712033,
+      "dataDate": "2026-10-15",
+      "produced": "2026-10-16T06:08:44Z",
+      "dataSource": "Geofabrik europe/czech-republic-latest.osm.pbf (2026-10-15T20:21:00Z)",
+      "zoom": {
+        "min": 0,
+        "max": 21
+      },
+      "coverage": {
+        "bbox": [
+          48.5429,
+          12.0848,
+          51.0643,
+          18.8632
+        ],
+        "poly": "layers-2026-10/europe_czech-republic.poly"
+      },
+      "license": "ODbL 1.0",
+      "attribution": "© OpenStreetMap contributors",
+      "theme": "routes",
+      "licenseText": "Data: OpenStreetMap, modified (derived) database\nLicense: Open Database License (ODbL) 1.0\nAttribution: © OpenStreetMap contributors\nhttps://www.openstreetmap.org/copyright"
+    },
+    {
+      "id": "routes/europe/monaco",
+      "type": "routes",
+      "region": "europe/monaco",
+      "format": "map",
+      "name": "Hiking, cycling and MTB routes – Monaco",
+      "files": [
+        {
+          "name": "europe_monaco.routes.map",
+          "path": "europe/monaco.routes.map",
+          "url": "layers-2026-10/europe_monaco.routes.map",
+          "size": 20237,
+          "sha256": "5641927a1a90e081b7d3f266987c85d0c57a8ba2a5089e61a26f96199605276f",
+          "date": "2026-10-16T08:50:55Z"
+        }
+      ],
+      "size": 20237,
+      "dataDate": "2026-10-15",
+      "produced": "2026-10-16T08:50:55Z",
+      "dataSource": "Geofabrik europe/monaco-latest.osm.pbf (2026-10-15T20:21:00Z)",
+      "zoom": {
+        "min": 0,
+        "max": 21
+      },
+      "coverage": {
+        "bbox": [
+          43.4838,
+          7.4086,
+          43.7529,
+          7.5957
+        ],
+        "poly": "layers-2026-10/europe_monaco.poly"
+      },
+      "license": "ODbL 1.0",
+      "attribution": "© OpenStreetMap contributors",
+      "theme": "routes",
+      "licenseText": "Data: OpenStreetMap, modified (derived) database\nLicense: Open Database License (ODbL) 1.0\nAttribution: © OpenStreetMap contributors\nhttps://www.openstreetmap.org/copyright"
+    },
+    {
+      "id": "tourist/europe/czech-republic",
+      "type": "tourist",
+      "region": "europe/czech-republic",
+      "format": "map",
+      "name": "Routes and outdoor features – Czech Republic",
+      "files": [
+        {
+          "name": "europe_czech-republic.tourist.map",
+          "path": "europe/czech-republic.tourist.map",
+          "url": "layers-2026-10f/europe_czech-republic.tourist.map",
+          "size": 45297725,
+          "sha256": "aedaae58c1fd18d913d438ff37f616c2cafd333a8d853b845e4ddf7ac74fbec4",
+          "date": "2026-10-19T22:08:36Z"
+        }
+      ],
+      "size": 45297725,
+      "dataDate": "2026-10-18",
+      "produced": "2026-10-19T22:08:36Z",
+      "dataSource": "Geofabrik europe/czech-republic-latest.osm.pbf (2026-10-18T20:25:06Z)",
+      "zoom": {
+        "min": 0,
+        "max": 21
+      },
+      "coverage": {
+        "bbox": [
+          48.5429,
+          12.0848,
+          51.0643,
+          18.8632
+        ],
+        "poly": "layers-2026-10f/europe_czech-republic.poly"
+      },
+      "license": "ODbL 1.0",
+      "attribution": "© OpenStreetMap contributors",
+      "theme": "tourist",
+      "licenseText": "Data: OpenStreetMap, modified (derived) database\nLicense: Open Database License (ODbL) 1.0\nAttribution: © OpenStreetMap contributors\nhttps://www.openstreetmap.org/copyright"
+    },
+    {
+      "id": "tourist/europe/monaco",
+      "type": "tourist",
+      "region": "europe/monaco",
+      "format": "map",
+      "name": "Routes and outdoor features – Monaco",
+      "files": [
+        {
+          "name": "europe_monaco.tourist.map",
+          "path": "europe/monaco.tourist.map",
+          "url": "layers-2026-10f/europe_monaco.tourist.map",
+          "size": 59882,
+          "sha256": "3ede852ae25ac1e9fb86c3df3a658d2661c13ee93ca75fd159c33cbcee2000eb",
+          "date": "2026-10-19T22:59:37Z"
+        }
+      ],
+      "size": 59882,
+      "dataDate": "2026-10-18",
+      "produced": "2026-10-19T22:59:37Z",
+      "dataSource": "Geofabrik europe/monaco-latest.osm.pbf (2026-10-18T20:25:06Z)",
+      "zoom": {
+        "min": 0,
+        "max": 21
+      },
+      "coverage": {
+        "bbox": [
+          43.4838,
+          7.4086,
+          43.7529,
+          7.5957
+        ],
+        "poly": "layers-2026-10f/europe_monaco.poly"
+      },
+      "license": "ODbL 1.0",
+      "attribution": "© OpenStreetMap contributors",
+      "theme": "tourist",
+      "licenseText": "Data: OpenStreetMap, modified (derived) database\nLicense: Open Database License (ODbL) 1.0\nAttribution: © OpenStreetMap contributors\nhttps://www.openstreetmap.org/copyright"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+name: Themes
+
+# Adds the GeoKuk themes (GeoKuk-tema.zip, GeoKuk-tema-PAWS.zip) of a GeoKuk release to an existing draft release layers-YYYY-MM without
+# building the layers: scripts/theme-fetch.sh (SHA-256 and attestation), scripts/theme-check.py against the tag mapping,
+# scripts/publish.sh with the themes only (ZIPs and layers.json), then the check of check-draft (scripts/finalize.sh with DRY_RUN=1),
+# which compares the themes with the headers of every map of the release. Layers (publish=draft or release) adds the themes on its own.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Draft release layers-YYYY-MM[suffix] to add the themes to"
+        required: true
+      geokuk:
+        description: "Release tag of geokuk-community/geokuk, also a prerelease (v6.5.0-beta.36); default the latest release, never a prerelease"
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  themes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    concurrency:
+      group: layers-publish
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Download and check the GeoKuk themes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEOKUK: ${{ inputs.geokuk }}
+          DIR: ${{ github.workspace }}/upload/themes
+        run: |
+          scripts/theme-fetch.sh
+          python3 scripts/theme-check.py geokuk "$DIR/GeoKuk-tema.zip"
+          python3 scripts/theme-check.py paws "$DIR/GeoKuk-tema-PAWS.zip"
+      - name: Add the themes to the draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MODE: draft
+          TAG: ${{ inputs.tag }}
+          DIR: ${{ github.workspace }}/upload
+        run: scripts/publish.sh
+      - name: Verify the draft release without publishing it
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag }}
+          DRY_RUN: "1"
+        run: scripts/finalize.sh

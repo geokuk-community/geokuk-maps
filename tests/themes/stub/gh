@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+# Stub of gh api for the test of publish.sh in tests/themes/run.sh: one draft release (id 7, layers-2026-11) whose assets are the files in $STATE/assets.
+import json, os, sys, subprocess
+st = os.environ['STATE']; A = os.path.join(st, 'assets')
+args = sys.argv[1:]
+assert args[0] == 'api', args
+args = args[1:]
+method, jq, path, accept = 'GET', None, None, False
+i = 0
+while i < len(args):
+    a = args[i]
+    if a == '-X': method = args[i+1]; i += 2; continue
+    if a == '--jq': jq = args[i+1]; i += 2; continue
+    if a == '-H': accept = 'octet' in args[i+1]; i += 2; continue
+    if a in ('--paginate',): i += 1; continue
+    if a in ('-f', '-F'): i += 2; continue
+    path = a; i += 1
+names = sorted(os.listdir(A))
+assets = [{'id': 100 + k, 'name': n, 'state': 'uploaded', 'size': os.path.getsize(os.path.join(A, n))} for k, n in enumerate(names)]
+if path.startswith('repos/o/r/releases?'):
+    out = [{'id': 7, 'tag_name': 'layers-2026-11', 'draft': True}]
+elif path == 'repos/o/r/releases/7':
+    out = {'id': 7, 'draft': True}
+elif path.startswith('repos/o/r/releases/7/assets'):
+    out = assets
+elif path.startswith('repos/o/r/releases/assets/'):
+    aid = int(path.rsplit('/', 1)[1]); name = names[aid - 100]
+    if method == 'DELETE':
+        os.remove(os.path.join(A, name)); sys.exit(0)
+    sys.stdout.buffer.write(open(os.path.join(A, name), 'rb').read()); sys.exit(0)
+else:
+    sys.exit('stub: unexpected ' + path)
+data = json.dumps(out)
+if jq:
+    data = subprocess.run(['jq', '-r', jq], input=data, capture_output=True, text=True, check=True).stdout
+print(data.rstrip('\n'))

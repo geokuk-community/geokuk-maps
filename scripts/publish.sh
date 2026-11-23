@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 # Uploads the built files into the release layers-YYYY-MM and merges layers.json.
+# DIR/themes (scripts/theme-fetch.sh) adds the GeoKuk themes: both ZIPs are uploaded with their .sha256, and GeoKuk-tema.zip is written
+# into layers.json (scripts/theme-catalog.py; GeoKuk-tema-PAWS.zip is an asset only).
+# With DIR/themes only (no region), the themes are added to an existing draft release that has a layers.json (workflow themes.yml).
 # Env: GH_TOKEN, GITHUB_REPOSITORY, MODE (draft|release), DIR (one sub-folder per region with its files and layers.json), TAG (optional).
 set -euo pipefail
 : "${GH_TOKEN:?}" "${GITHUB_REPOSITORY:?}" "${MODE:?}" "${DIR:?}"
@@ -8,7 +11,11 @@ if [ -f "$DIR/layers.json" ]; then
   mkdir -p "$DIR/single"
   find "$DIR" -maxdepth 1 -type f -exec mv {} "$DIR/single/" \;
 fi
-ls "$DIR"/*/layers.json > /dev/null 2>&1 || { echo "No built region to publish" >&2; exit 1; }
+themes=
+[ -s "$DIR/themes/themes.meta.json" ] && themes=1
+regions=
+ls "$DIR"/*/layers.json > /dev/null 2>&1 && regions=1
+[ -n "$regions" ] || [ -n "$themes" ] || { echo "No built region to publish" >&2; exit 1; }
 R=$(cd "$(dirname "$0")/.." && pwd)
 TAG=${TAG:-layers-$(date -u +%Y-%m)}
 [[ "$TAG" =~ ^layers-[0-9]{4}-[0-9]{2}[a-z0-9-]*$ ]] || { echo "Invalid TAG: $TAG" >&2; exit 2; }
@@ -16,6 +23,10 @@ TAG=${TAG:-layers-$(date -u +%Y-%m)}
 [ -z "${GITHUB_OUTPUT:-}" ] || echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 api() { gh api "$@"; }
 ID=$(api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate --jq ".[]|select(.tag_name==\"$TAG\")|.id" | head -1)
+if [ -z "$ID" ] && [ -z "$regions" ]; then
+  echo "Release $TAG does not exist; themes are only added to an existing draft release" >&2
+  exit 1
+fi
 if [ -z "$ID" ]; then
   ID=$(api -X POST "repos/$GITHUB_REPOSITORY/releases" -f tag_name="$TAG" -f name="Layers $TAG" -F draft=true \
     -f body="Offline map layers for GeoKuk (tourist, contours, elevation data). See README.md and layers.json." --jq .id)
@@ -32,6 +43,7 @@ download_catalog() { # $1 release id
   [ -n "$aid" ] && api -H "Accept: application/octet-stream" "repos/$GITHUB_REPOSITORY/releases/assets/$aid" > "$DIR/existing/layers.json" || return 1
 }
 if ! download_catalog "$ID"; then
+  [ -n "$regions" ] || { echo "Release $TAG has no layers.json to add the themes to" >&2; exit 1; }
   latest=$(api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .id 2>/dev/null || true)
   [ -n "$latest" ] && download_catalog "$latest" || true
 fi
@@ -46,10 +58,14 @@ for frag in "$DIR"/*/layers.json; do
   fi
   cur="$DIR/layers.json"
 done
+[ -n "$regions" ] || cp "$cur" "$DIR/layers.json"
+if [ -n "$themes" ]; then
+  python3 "$R/scripts/theme-catalog.py" "$DIR/layers.json" "$DIR/themes" "$TAG"
+fi
 LIMIT=$((2 * 1024 * 1024 * 1024))
 python3 "$R/scripts/omit-large.py" "$DIR/layers.json" "$LIMIT"
 cat "$R/licenses/OSM.txt" > "$DIR/LICENSES.txt"; printf '\n\n' >> "$DIR/LICENSES.txt"; cat "$R/licenses/COPERNICUS.txt" >> "$DIR/LICENSES.txt"
-for f in "$DIR"/*/*.map "$DIR"/*/*.dem*.zip "$DIR"/*/*.poly "$DIR"/LICENSES.txt "$DIR"/layers.json; do
+for f in "$DIR"/*/*.map "$DIR"/*/*.dem*.zip "$DIR"/*/*.poly "$DIR"/themes/*.zip "$DIR"/themes/*.zip.sha256 "$DIR"/LICENSES.txt "$DIR"/layers.json; do
   [ -f "$f" ] || continue
   name=$(basename "$f")
   size=$(stat -c %s "$f")

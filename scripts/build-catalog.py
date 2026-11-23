@@ -65,6 +65,7 @@ def main():
     layers = build(folder, region, name, bbox, prefix)
     sources = [SOURCE]
     merged = layers
+    themes = []
     existing = os.environ.get('EXISTING_CATALOG')
     if existing and os.path.exists(existing):
         with open(existing, encoding='utf-8') as f:
@@ -72,8 +73,11 @@ def main():
         new_ids = {x['id'] for x in layers}
         merged = [x for x in old.get('layers', []) if x['id'] not in new_ids] + layers
         sources = list(dict.fromkeys(old.get('sources', []) + sources))
+        themes = old.get('themes', [])
     out = {'version': 1, 'generated': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 'sources': sources,
            'layers': sorted(merged, key=lambda x: x['id'])}
+    if themes:
+        out['themes'] = themes
     with open(os.path.join(folder, 'layers.json'), 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
         f.write('\n')
