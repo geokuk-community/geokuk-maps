@@ -1,0 +1,44 @@
+name: Sources check
+
+# Checks twice a week that the sources of the map layers are available (scripts/sources-check.sh: HEAD, the first bytes by Range,
+# small indexes; each check tried 3 times), writes the table to the run summary and reports an outage in an issue
+# (scripts/sources-issue.sh): it opens "Nedostupné zdroje map: <list>" with the label zdroje, or comments on the open one, and adds
+# "Zdroje jsou znovu dostupné" when everything is available again. It never closes the issue.
+on:
+  schedule:
+    - cron: "17 5 * * 1,4"
+  workflow_dispatch:
+    inputs:
+      test_url:
+        description: "Extra URL to check, for testing the outage handling (an unreachable URL opens or comments on the issue)"
+        default: ""
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: sources-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check the sources
+        env:
+          OUT: ${{ runner.temp }}/sources
+          TEST_URL: ${{ inputs.test_url }}
+        run: |
+          scripts/sources-check.sh
+          cat "$OUT/summary.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Report in an issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OUT: ${{ runner.temp }}/sources
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ASSIGNEE: tomas7744
+          TEST_URL: ${{ inputs.test_url }}
+        run: scripts/sources-issue.sh
