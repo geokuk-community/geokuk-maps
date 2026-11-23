@@ -136,6 +136,10 @@ def main():
             drafts = [r for r in drafts if r['tag_name'] == wanted]
         if len(drafts) != 1:
             sys.exit('Expected exactly one draft release layers-*, found %d (set TAG)' % len(drafts))
+        others = sorted(r['tag_name'] for r in load(sys.argv[2]) if r.get('draft') and r.get('tag_name', '').startswith('layers-')
+                        and r['tag_name'] != drafts[0]['tag_name'])
+        for other in others:
+            print('::warning::Another draft release exists: %s (this run checks %s)' % (other, drafts[0]['tag_name']), file=sys.stderr)
         tag = drafts[0]['tag_name']
         newer = sorted(r['tag_name'] for r in load(sys.argv[2]) if not r.get('draft') and re.fullmatch(r'layers-[0-9]{4}-[0-9]{2}[a-z0-9-]*', r.get('tag_name', '')) and r['tag_name'] >= tag)
         if newer:
