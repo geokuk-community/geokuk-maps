@@ -153,4 +153,10 @@ assert new['layers'] == old['layers'] and new['sources'] == old['sources'] and n
 assert [(t['id'], t['files'][0]['url']) for t in new['themes']] == [('theme/geokuk', 'layers-2026-11/GeoKuk-tema.zip')], new['themes']
 print('ok: themes added to the draft, its layers unchanged')
 PY
+# theme-fetch.sh stops before any download when the GeoKuk release lacks a theme or its .sha256, with a hint for the input geokuk
+# (GeoKuk 6.4.3, the latest release in November 2026, has neither ZIP).
+printf '{"tag_name": "v6.4.3", "published_at": "2026-10-01T00:00:00Z", "html_url": "https://example.invalid/v6.4.3", "assets": [{"name": "GeoKuk-tema.zip"}, {"name": "GeoKuk-tema.zip.sha256"}]}\n' > "$work/release.json"
+fetch() { PATH="$T/stub-fetch:$PATH" RELEASE_JSON="$work/release.json" GH_TOKEN=x DIR="$work/fetched" "$@" bash "$R/scripts/theme-fetch.sh"; }
+expect_fail 'The latest GeoKuk release (v6.4.3, input geokuk empty) lacks GeoKuk-tema-PAWS.zip GeoKuk-tema-PAWS.zip.sha256; until a stable GeoKuk release has both themes, give the input geokuk explicitly' fetch env
+expect_fail 'GeoKuk release v6.4.3 lacks GeoKuk-tema-PAWS.zip GeoKuk-tema-PAWS.zip.sha256; give the input geokuk a release' fetch env GEOKUK=v6.4.3
 echo "All theme and catalogue checks passed"

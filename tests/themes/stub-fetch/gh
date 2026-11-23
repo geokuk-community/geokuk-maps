@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Stub of gh for the test of theme-fetch.sh in tests/themes/run.sh: "gh api repos/<repo>/releases/latest" and ".../releases/tags/<tag>"
+# print $RELEASE_JSON (a release of GeoKuk); anything else fails, so the test also shows that nothing is downloaded.
+case "$1 $2" in
+  "api repos/"*/releases/latest|"api repos/"*/releases/tags/*) cat "$RELEASE_JSON";;
+  *) echo "stub gh: unexpected $*" >&2; exit 1;;
+esac

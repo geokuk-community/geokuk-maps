@@ -19,6 +19,17 @@ else
 fi
 read -r tag published url < <(python3 -I -c 'import json,sys; r=json.load(open(sys.argv[1])); print(r["tag_name"], r["published_at"][:10], r["html_url"])' "$work/release.json")
 echo "GeoKuk release $tag ($published)"
+# Every theme with its .sha256 must be an asset of the release; say which are missing before downloading anything.
+missing=$(python3 -I -c 'import json,sys; names={a["name"] for a in json.load(open(sys.argv[1])).get("assets", [])}; print(" ".join(n for n in sys.argv[2:] if n not in names))' \
+  "$work/release.json" "${THEMES[@]}" "${THEMES[@]/%/.sha256}")
+if [ -n "$missing" ]; then
+  if [ -n "${GEOKUK:-}" ]; then
+    echo "::error::GeoKuk release $tag lacks $missing; give the input geokuk a release that has GeoKuk-tema.zip and GeoKuk-tema-PAWS.zip with their .sha256" >&2
+  else
+    echo "::error::The latest GeoKuk release ($tag, input geokuk empty) lacks $missing; until a stable GeoKuk release has both themes, give the input geokuk explicitly, for example v6.5.0-beta.36" >&2
+  fi
+  exit 1
+fi
 for name in "${THEMES[@]}"; do
   rm -f "$DIR/$name" "$DIR/$name.sha256" "$work/$name.sha256"
   gh release download "$tag" --repo "$REPO" --pattern "$name" --pattern "$name.sha256" --dir "$work" --clobber \
