@@ -3,7 +3,9 @@
 # the mapsforge base maps and their mirror (size and date of the mirror against the original), the OSM planet on AWS, Geofabrik,
 # Copernicus GLO-30, ČÚZK DMR 4G, the tools the workflows download, and layers.json of the latest release.
 # Each check is tried 3 times (RETRY_DELAY seconds apart, default 30); only the third failure counts as an outage.
-# Writes OUT/results.tsv (source, URL, state, time in ms, detail; state ok|fail) and OUT/summary.md (table in Czech).
+# Geofabrik is only a warning (state warn): the layers use the planet on AWS, Geofabrik only with osm_source=geofabrik and as the
+# fallback of the pull request checks when tests/osm has no sample; it was unreachable from the GitHub runners in November 2026.
+# Writes OUT/results.tsv (source, URL, state, time in ms, detail; state ok|warn|fail) and OUT/summary.md (table in Czech).
 # Env: OUT; optional TEST_URL (an extra URL to check, for testing the outage handling), RETRY_DELAY, GITHUB_REPOSITORY.
 set -uo pipefail
 : "${OUT:?}"
@@ -54,7 +56,7 @@ check() {
     [ -n "$detail" ] || detail="HTTP $code $(head -c 200 "$tmp/err" | tr '\n\t' '  ')"
     [ "$try" -lt 3 ] && sleep $((try * DELAY))
   done
-  record "$source" "$url" fail "$ms" "$detail"
+  record "$source" "$url" "${FAIL_STATE:-fail}" "$ms" "$detail"
   return 1
 }
 
@@ -106,8 +108,8 @@ else
 fi
 
 # 3. Geofabrik (osm_source=geofabrik): the index and one small extract.
-check "Geofabrik: index" "https://download.geofabrik.de/index-v1-nogeom.json"
-check "Geofabrik: extrakt" "https://download.geofabrik.de/europe/monaco-latest.osm.pbf"
+FAIL_STATE=warn check "Geofabrik: index" "https://download.geofabrik.de/index-v1-nogeom.json"
+FAIL_STATE=warn check "Geofabrik: extrakt" "https://download.geofabrik.de/europe/monaco-latest.osm.pbf"
 
 # 4. Copernicus GLO-30: the tile list and one tile.
 check "Copernicus: tileList.txt" "$COPERNICUS/tileList.txt"
@@ -146,14 +148,16 @@ if [ -n "${TEST_URL:-}" ]; then
 fi
 
 failed=$(awk -F'\t' '$3 == "fail"' "$results" | wc -l)
+warned=$(awk -F'\t' '$3 == "warn"' "$results" | wc -l)
 total=$(wc -l < "$results")
 {
   echo "### Dostupnost zdrojů map"
   echo
-  echo "Dostupné: $((total - failed)) z $total."
+  echo "Dostupné: $((total - failed - warned)) z $total, nedostupné: $failed, varování: $warned (Geofabrik je jen záložní zdroj a výpadek neohlašuje)."
   echo
   echo "| Zdroj | URL | Stav | Čas | Podrobnosti |"
   echo "|---|---|---|---|---|"
-  awk -F'\t' '{printf "| %s | %s | %s | %s ms | %s |\n", $1, $2, ($3 == "ok" ? "dostupný" : "**nedostupný**"), $4, $5}' "$results"
+  awk -F'\t' '{printf "| %s | %s | %s | %s ms | %s |\n", $1, $2, ($3 == "ok" ? "dostupný" : ($3 == "warn" ? "varování: nedostupný" : "**nedostupný**")), $4, $5}' "$results"
 } > "$OUT/summary.md"
-echo "$((total - failed)) of $total sources available"
+echo "$((total - failed - warned)) of $total sources available, $failed unavailable, $warned warnings"
+awk -F'\t' '$3 == "warn" {printf "::warning::%s unavailable: %s\n", $1, $5}' "$results"

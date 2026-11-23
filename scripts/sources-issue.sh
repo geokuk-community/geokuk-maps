@@ -27,6 +27,8 @@ if [ -n "$failed" ]; then
     [ -z "${TEST_URL:-}" ] || { echo; echo "Běh se zkušební adresou (vstup test_url): $TEST_URL"; }
     echo
     awk -F'\t' 'BEGIN {print "| Zdroj | URL | Podrobnosti |"; print "|---|---|---|"} $3 == "fail" {printf "| %s | %s | %s |\n", $1, $2, $5}' "$results"
+    warn=$(awk -F'\t' '$3 == "warn" {print $1}' "$results" | paste -sd ',' - | sed 's/,/, /g')
+    [ -z "$warn" ] || { echo; echo "Varování (záložní zdroj, samo issue nezakládá): $warn."; }
     echo
     echo "<details><summary>Všechny kontroly</summary>"
     echo
