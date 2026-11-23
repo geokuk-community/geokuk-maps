@@ -14,6 +14,7 @@ if [ "$(gh api "repos/$GITHUB_REPOSITORY" --jq .has_issues)" != true ]; then
   exit 1
 fi
 failed=$(awk -F'\t' '$3 == "fail" {print $1}' "$results" | paste -sd ',' - | sed 's/,/, /g')
+warn=$(awk -F'\t' '$3 == "warn" {print $1}' "$results" | paste -sd ',' - | sed 's/,/, /g')
 gh label list --repo "$GITHUB_REPOSITORY" --limit 200 --json name --jq '.[].name' | grep -qxF "$LABEL" \
   || gh label create "$LABEL" --repo "$GITHUB_REPOSITORY" --color d93f0b --description "Dostupnost zdrojů map (workflow Sources check)"
 issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --label "$LABEL" --state open --limit 50 --json number,title \
@@ -27,7 +28,6 @@ if [ -n "$failed" ]; then
     [ -z "${TEST_URL:-}" ] || { echo; echo "Běh se zkušební adresou (vstup test_url): $TEST_URL"; }
     echo
     awk -F'\t' 'BEGIN {print "| Zdroj | URL | Podrobnosti |"; print "|---|---|---|"} $3 == "fail" {printf "| %s | %s | %s |\n", $1, $2, $5}' "$results"
-    warn=$(awk -F'\t' '$3 == "warn" {print $1}' "$results" | paste -sd ',' - | sed 's/,/, /g')
     [ -z "$warn" ] || { echo; echo "Varování (záložní zdroj, samo issue nezakládá): $warn."; }
     echo
     echo "<details><summary>Všechny kontroly</summary>"
@@ -47,7 +47,15 @@ elif [ -n "$issue" ]; then
   if [[ "$last" == "Zdroje jsou znovu dostupné"* ]]; then
     echo "Issue #$issue already says that the sources are available again"
   else
-    printf 'Zdroje jsou znovu dostupné (všechny kontroly prošly).\n\nBěh: %s\n' "$RUN_URL" > "$body"
+    {
+      if [ -n "$warn" ]; then
+        echo "Zdroje jsou znovu dostupné (zůstává jen varování u záložního zdroje: $warn)."
+      else
+        echo "Zdroje jsou znovu dostupné (všechny kontroly prošly)."
+      fi
+      echo
+      echo "Běh: $RUN_URL"
+    } > "$body"
     gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" --body-file "$body"
     echo "Recovery added to issue #$issue"
   fi
