@@ -11,7 +11,7 @@ on:
         description: "Draft release layers-YYYY-MM[suffix] to add the themes to"
         required: true
       geokuk:
-        description: "Release tag of geokuk-community/geokuk; default the latest release"
+        description: "Release tag of geokuk-community/geokuk, also a prerelease (v6.5.0-beta.36); default the latest release, never a prerelease"
         default: ""
 
 permissions:

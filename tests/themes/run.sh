@@ -60,10 +60,10 @@ python3 -I - "$T/layers.json" "$work/layers.json" <<'PY'
 import json, sys
 old, new = (json.load(open(p, encoding='utf-8')) for p in sys.argv[1:3])
 assert new['version'] == 1 and new['layers'] == old['layers'] and new['sources'] == old['sources'], 'layers changed'
-assert list(new)[-1] == 'themes' and [t['id'] for t in new['themes']] == ['theme/geokuk', 'theme/geokuk-paws'], new.get('themes')
+assert list(new)[-1] == 'themes' and [t['id'] for t in new['themes']] == ['theme/geokuk'], new.get('themes')
 g = new['themes'][0]
 assert g['files'][0]['url'] == 'layers-2026-12/GeoKuk-tema.zip' and g['layers'] == ['tourist', 'contours'] and g['geokukVersion'] == '6.5.0'
-print('ok: themes added, layers unchanged')
+print('ok: theme/geokuk added (GeoKuk-tema-PAWS.zip not in the catalogue), layers unchanged')
 PY
 # merge-catalog keeps the themes of the release when a region is merged in.
 python3 -I - "$work/layers.json" "$work/frag.json" <<'PY'
@@ -91,4 +91,35 @@ PY
   want=$(case $case in version) echo 'version must be the integer 1';; dup) echo 'is not unique';; files) echo 'files missing';; esac)
   expect_fail "$want" python3 "$R/scripts/finalize-check.py" compat "$work/bad.json"
 done
+# A theme of osm.paws.cz in the catalogue is refused (GeoKuk-tema-PAWS.zip is a release asset only).
+python3 -I - "$work/layers.json" "$work/bad.json" <<'PY'
+import json, sys
+c = json.load(open(sys.argv[1], encoding='utf-8'))
+paws = json.loads(json.dumps(c['themes'][0]))
+paws.update(id='theme/geokuk-paws', name='GeoKuk (osm.paws.cz)', **{'for': 'osm.paws.cz'})
+paws['files'][0].update(name='GeoKuk-tema-PAWS.zip', url='layers-2026-12/GeoKuk-tema-PAWS.zip')
+c['themes'].append(paws)
+json.dump(c, open(sys.argv[2], 'w'))
+PY
+expect_fail 'theme/geokuk-paws: theme not expected in layers.json' python3 "$R/scripts/finalize-check.py" compat "$work/bad.json"
+# verify: both ZIPs with their .sha256 are required assets; the PAWS ZIP is not an unreferenced asset.
+python3 -I - "$work/layers.json" "$work/assets.json" <<'PY'
+import json, sys
+c = json.load(open(sys.argv[1], encoding='utf-8'))
+assets, i = [], 1
+for x in c['layers'] + c['themes']:
+    for f in x['files']:
+        tag, name = f['url'].split('/')
+        if tag == 'layers-2026-12':
+            assets.append({'id': i, 'name': name, 'state': 'uploaded', 'size': f['size'], 'digest': 'sha256:' + f['sha256']})
+            i += 1
+for name in ('GeoKuk-tema.zip.sha256', 'GeoKuk-tema-PAWS.zip', 'GeoKuk-tema-PAWS.zip.sha256', 'layers.json', 'LICENSES.txt'):
+    assets.append({'id': i, 'name': name, 'state': 'uploaded', 'size': 1})
+    i += 1
+json.dump(assets, open(sys.argv[2], 'w'))
+PY
+ALLOW_NO_DIGEST=1 python3 "$R/scripts/finalize-check.py" verify "$work/layers.json" "$work/assets.json" layers-2026-12 | tee "$work/out.txt"
+! grep -q 'not referenced' "$work/out.txt" || fail "a theme asset is reported as unreferenced"
+python3 -I -c 'import json,sys; a=json.load(open(sys.argv[1])); json.dump([x for x in a if x["name"] != "GeoKuk-tema-PAWS.zip.sha256"], open(sys.argv[1], "w"))' "$work/assets.json"
+expect_fail 'theme asset GeoKuk-tema-PAWS.zip.sha256 missing' python3 "$R/scripts/finalize-check.py" verify "$work/layers.json" "$work/assets.json" layers-2026-12
 echo "All theme and catalogue checks passed"

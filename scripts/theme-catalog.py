@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Writes the GeoKuk themes into layers.json, as the top-level list "themes" next to "layers" (replaced by id).
+"""Writes the GeoKuk theme GeoKuk-tema.zip (for the maps and layers of GeoKuk) into layers.json, as the top-level list "themes" next to
+"layers" (replaced by id). GeoKuk-tema-PAWS.zip (maps of osm.paws.cz) is a release asset only and is not in the catalogue.
 GeoKuk 6.5.0 (KatalogVrstev) reads only version, sources and layers and ignores other top-level keys, so the list does not change how
 it reads the catalogue; "version" stays 1 and nothing is added to "layers".
 Usage: theme-catalog.py layers.json themes_dir tag   (themes_dir holds the ZIPs and themes.meta.json of scripts/theme-fetch.sh)"""
@@ -7,7 +8,6 @@ import hashlib, json, os, sys
 
 THEMES = [
     dict(id='theme/geokuk', file='GeoKuk-tema.zip', name='GeoKuk', maps='geokuk-maps', layers=['tourist', 'contours']),
-    dict(id='theme/geokuk-paws', file='GeoKuk-tema-PAWS.zip', name='GeoKuk (osm.paws.cz)', maps='osm.paws.cz'),
 ]
 
 
@@ -36,11 +36,11 @@ def entries(folder, tag):
 
 
 def merge(old, new):
-    """Themes of old with those of new replaced by id, in the order of THEMES."""
-    by_id = {t['id']: t for t in old or []}
-    by_id.update({t['id']: t for t in new or []})
+    """Themes of old with those of new replaced by id, in the order of THEMES; only the themes of THEMES are kept."""
     order = [t['id'] for t in THEMES]
-    return sorted(by_id.values(), key=lambda t: (order.index(t['id']) if t['id'] in order else len(order), t['id']))
+    by_id = {t['id']: t for t in old or [] if t.get('id') in order}
+    by_id.update({t['id']: t for t in new or []})
+    return sorted(by_id.values(), key=lambda t: order.index(t['id']))
 
 
 def main():

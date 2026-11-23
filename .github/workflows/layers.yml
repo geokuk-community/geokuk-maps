@@ -44,7 +44,7 @@ on:
         description: "Planet for osm_source=aws, planet-YYMMDD; default the newest with an .md5"
         default: ""
       geokuk:
-        description: "Release tag of geokuk-community/geokuk whose themes (GeoKuk-tema.zip, GeoKuk-tema-PAWS.zip) the release carries; default the latest release"
+        description: "Release tag of geokuk-community/geokuk whose themes (GeoKuk-tema.zip, GeoKuk-tema-PAWS.zip) the release carries, also a prerelease (v6.5.0-beta.36); default the latest release, never a prerelease"
         default: ""
   pull_request:
     branches: [main]

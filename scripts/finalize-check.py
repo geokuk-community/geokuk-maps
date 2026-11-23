@@ -4,7 +4,7 @@
   asset-id assets.json name        prints the id of the uploaded asset with that name
   verify layers.json assets.json tag   fails when size or sha256 of a file (layers and themes) differ from the uploaded assets or the
                                    catalogue does not keep the rules of the GeoKuk catalogue reader (see compat); warns about unreferenced assets
-  compat layers.json               only the catalogue rules: what GeoKuk 6.5.0 (KatalogVrstev) needs and the two themes
+  compat layers.json               only the catalogue rules: what GeoKuk 6.5.0 (KatalogVrstev) needs and the theme theme/geokuk
   map-assets layers.json tag dir   prints "<release> <asset id> <name>" of every tourist and contours .map in layers.json, with
                                    dir/<tag>.assets.json for this release and dir/<release>.assets.json for older ones
   other-tags layers.json tag       prints the other releases that layers.json points to (dem and contours kept from an older release)
@@ -19,8 +19,10 @@ def load(path):
     return data
 
 
-# The themes that every release carries (scripts/theme-catalog.py), so that .../releases/latest/download/<file> always works.
-THEMES = {'theme/geokuk': 'GeoKuk-tema.zip', 'theme/geokuk-paws': 'GeoKuk-tema-PAWS.zip'}
+# The theme in layers.json (scripts/theme-catalog.py), and the theme assets that every release carries, so that
+# .../releases/latest/download/<file> always works: GeoKuk-tema-PAWS.zip (maps of osm.paws.cz) is an asset only, not in the catalogue.
+THEMES = {'theme/geokuk': 'GeoKuk-tema.zip'}
+THEME_ASSETS = ('GeoKuk-tema.zip', 'GeoKuk-tema.zip.sha256', 'GeoKuk-tema-PAWS.zip', 'GeoKuk-tema-PAWS.zip.sha256')
 KNOWN = {'tourist': 'map', 'contours': 'map', 'dem': 'hgt-zip'}
 SHA256 = re.compile(r'[0-9a-f]{64}')
 
@@ -28,7 +30,7 @@ SHA256 = re.compile(r'[0-9a-f]{64}')
 def compat(catalog):
     """Problems of layers.json under the rules of the catalogue reader of GeoKuk 6.5.0 (KatalogVrstev.nacti): version is the integer 1;
     a layer of an unknown type or format is skipped, any other defect of a layer fails the whole catalogue; ids and file paths are unique
-    among the layers. The reader ignores other top-level keys such as "themes", which must hold the two themes."""
+    among the layers. The reader ignores other top-level keys such as "themes", which must hold the theme theme/geokuk only."""
     problems = []
     if type(catalog.get('version')) is not int or catalog['version'] != 1:
         problems.append('layers.json: version must be the integer 1 (GeoKuk 6.5.0 reads a higher one as a newer format)')
@@ -86,6 +88,8 @@ def compat(catalog):
     for ident, name in THEMES.items():
         if found.get(ident) != name:
             problems.append('%s: theme with the file %s missing' % (ident, name))
+    for ident in sorted(set(found) - set(THEMES)):
+        problems.append('%s: theme not expected in layers.json' % ident)
     return problems
 
 
@@ -150,7 +154,10 @@ def main():
         if 'LICENSES.txt' not in assets:
             problems.append('LICENSES.txt missing')
         files = 0
-        referenced = {'layers.json', 'LICENSES.txt'}
+        referenced = {'layers.json', 'LICENSES.txt'} | set(THEME_ASSETS)
+        for name in THEME_ASSETS:
+            if assets.get(name, {}).get('state') != 'uploaded':
+                problems.append('theme asset %s missing' % name)
         no_digest = os.environ.get('ALLOW_NO_DIGEST') == '1'
         for layer in catalog.get('layers', []) + catalog.get('themes', []):
             refs = [(f['url'], f['size']) for f in layer.get('files', [])]
@@ -189,7 +196,7 @@ def main():
         problems = compat(load(sys.argv[2]))
         if problems:
             sys.exit('\n'.join(problems[:50]) + '\n%d problem(s)' % len(problems))
-        print('layers.json keeps the catalogue rules of GeoKuk 6.5.0 and has the themes')
+        print('layers.json keeps the catalogue rules of GeoKuk 6.5.0 and has the theme theme/geokuk')
     elif cmd == 'map-assets':
         catalog, tag, folder = load(sys.argv[2]), sys.argv[3], sys.argv[4]
         assets = {}

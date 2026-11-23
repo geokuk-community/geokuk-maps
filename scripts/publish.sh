@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Uploads the built files into the release layers-YYYY-MM and merges layers.json.
-# DIR/themes (scripts/theme-fetch.sh) adds the GeoKuk themes: their ZIPs are uploaded and written into layers.json (scripts/theme-catalog.py).
+# DIR/themes (scripts/theme-fetch.sh) adds the GeoKuk themes: both ZIPs are uploaded with their .sha256, and GeoKuk-tema.zip is written
+# into layers.json (scripts/theme-catalog.py; GeoKuk-tema-PAWS.zip is an asset only).
 # With DIR/themes only (no region), the themes are added to an existing draft release that has a layers.json (workflow themes.yml).
 # Env: GH_TOKEN, GITHUB_REPOSITORY, MODE (draft|release), DIR (one sub-folder per region with its files and layers.json), TAG (optional).
 set -euo pipefail
@@ -64,7 +65,7 @@ fi
 LIMIT=$((2 * 1024 * 1024 * 1024))
 python3 "$R/scripts/omit-large.py" "$DIR/layers.json" "$LIMIT"
 cat "$R/licenses/OSM.txt" > "$DIR/LICENSES.txt"; printf '\n\n' >> "$DIR/LICENSES.txt"; cat "$R/licenses/COPERNICUS.txt" >> "$DIR/LICENSES.txt"
-for f in "$DIR"/*/*.map "$DIR"/*/*.dem*.zip "$DIR"/*/*.poly "$DIR"/themes/*.zip "$DIR"/LICENSES.txt "$DIR"/layers.json; do
+for f in "$DIR"/*/*.map "$DIR"/*/*.dem*.zip "$DIR"/*/*.poly "$DIR"/themes/*.zip "$DIR"/themes/*.zip.sha256 "$DIR"/LICENSES.txt "$DIR"/layers.json; do
   [ -f "$f" ] || continue
   name=$(basename "$f")
   size=$(stat -c %s "$f")

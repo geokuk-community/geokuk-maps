@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Downloads the GeoKuk themes GeoKuk-tema.zip (for the maps of GeoKuk, rules fmrel*) and GeoKuk-tema-PAWS.zip (for the maps of
 # osm.paws.cz) from a release of geokuk-community/geokuk, checks each against its .sha256 and its build provenance attestation
-# (gh attestation verify) and writes DIR/themes.meta.json for scripts/theme-catalog.py.
-# Env: GH_TOKEN, DIR; optional GEOKUK (release tag, default the latest release, which is never a prerelease), GEOKUK_REPO.
+# (gh attestation verify) and keeps both with their .sha256 in DIR, for the release; writes DIR/themes.meta.json for scripts/theme-catalog.py.
+# Env: GH_TOKEN, DIR; optional GEOKUK (release tag, also a prerelease such as v6.5.0-beta.36; default the latest release, which is never
+# a prerelease), GEOKUK_REPO.
 set -euo pipefail
 : "${GH_TOKEN:?}" "${DIR:?}"
 REPO=${GEOKUK_REPO:-geokuk-community/geokuk}
@@ -19,7 +20,7 @@ fi
 read -r tag published url < <(python3 -I -c 'import json,sys; r=json.load(open(sys.argv[1])); print(r["tag_name"], r["published_at"][:10], r["html_url"])' "$work/release.json")
 echo "GeoKuk release $tag ($published)"
 for name in "${THEMES[@]}"; do
-  rm -f "$DIR/$name" "$work/$name.sha256"
+  rm -f "$DIR/$name" "$DIR/$name.sha256" "$work/$name.sha256"
   gh release download "$tag" --repo "$REPO" --pattern "$name" --pattern "$name.sha256" --dir "$work" --clobber \
     || { echo "Release $tag of $REPO has no $name with $name.sha256" >&2; exit 1; }
   [ -s "$work/$name" ] && [ -s "$work/$name.sha256" ] || { echo "$name or $name.sha256 is missing in release $tag" >&2; exit 1; }
@@ -31,6 +32,7 @@ for name in "${THEMES[@]}"; do
   gh attestation verify "$work/$name" --repo "$REPO" > /dev/null \
     || { echo "$name has no valid build provenance attestation of $REPO" >&2; exit 1; }
   mv "$work/$name" "$DIR/$name"
+  mv "$work/$name.sha256" "$DIR/$name.sha256"
   echo "$name: $(stat -c %s "$DIR/$name") bytes, sha256 $actual, attestation of $REPO verified"
 done
 python3 -I - "$DIR/themes.meta.json" "$tag" "$published" "$url" <<'PY'
