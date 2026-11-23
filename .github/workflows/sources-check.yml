@@ -34,7 +34,7 @@ jobs:
       - name: Check the sources
         env:
           OUT: ${{ runner.temp }}/sources
-          TEST_URL: ${{ inputs.test_url || (github.event_name == 'pull_request' && 'https://download.mapsforge.org/maps/v5/europe/test-neexistuje-1.map' || '') }}
+          TEST_URL: ${{ inputs.test_url }}
         run: |
           scripts/sources-check.sh
           cat "$OUT/summary.md" >> "$GITHUB_STEP_SUMMARY"
@@ -44,5 +44,5 @@ jobs:
           OUT: ${{ runner.temp }}/sources
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           ASSIGNEE: tomas7744
-          TEST_URL: ${{ inputs.test_url || (github.event_name == 'pull_request' && 'https://download.mapsforge.org/maps/v5/europe/test-neexistuje-1.map' || '') }}
+          TEST_URL: ${{ inputs.test_url }}
         run: scripts/sources-issue.sh
