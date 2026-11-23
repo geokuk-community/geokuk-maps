@@ -1,0 +1,2 @@
+# Layer ids (as in layers.json, e.g. tourist/europe/monaco) removed on purpose: check-draft, check and finalize
+# (scripts/finalize-check.py compare) do not count them as missing against the previous release. One id per line.

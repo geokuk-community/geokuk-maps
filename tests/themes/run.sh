@@ -153,4 +153,23 @@ assert new['layers'] == old['layers'] and new['sources'] == old['sources'] and n
 assert [(t['id'], t['files'][0]['url']) for t in new['themes']] == [('theme/geokuk', 'layers-2026-11/GeoKuk-tema.zip')], new['themes']
 print('ok: themes added to the draft, its layers unchanged')
 PY
+# A layer of the previous release that is missing in the new layers.json fails, unless mapping/removed-layers.txt lists it.
+python3 "$R/scripts/finalize-check.py" compare "$T/layers.json" "$T/layers.json"
+python3 -I -c 'import json,sys; c=json.load(open(sys.argv[1])); c["layers"]=[x for x in c["layers"] if x["id"] != "tourist/europe/monaco"]; json.dump(c, open(sys.argv[2], "w"))' \
+  "$T/layers.json" "$work/fewer.json"
+expect_fail '1 layer(s) of the previous release are missing (omitted at 2 GiB, a failed build, or removed: then list them in mapping/removed-layers.txt): tourist/europe/monaco' \
+  python3 "$R/scripts/finalize-check.py" compare "$work/fewer.json" "$T/layers.json"
+printf '# test\ntourist/europe/monaco\n' > "$work/removed.txt"
+REMOVED_LAYERS="$work/removed.txt" python3 "$R/scripts/finalize-check.py" compare "$work/fewer.json" "$T/layers.json"
+# The previous release is the newest published layers-* older than the draft; drafts and other tags do not count.
+printf '[{"id": 1, "tag_name": "layers-2026-11", "draft": false}, {"id": 2, "tag_name": "layers-2026-10f", "draft": false}, {"id": 3, "tag_name": "layers-2026-11-split", "draft": true}, {"id": 4, "tag_name": "layers-2026-12", "draft": true}, {"id": 5, "tag_name": "v1", "draft": false}]\n' > "$work/releases.json"
+[ "$(python3 "$R/scripts/finalize-check.py" previous "$work/releases.json" layers-2026-12)" = "1 layers-2026-11" ] || fail "wrong previous release"
+[ -z "$(python3 "$R/scripts/finalize-check.py" previous "$work/releases.json" layers-2026-10)" ] || fail "a previous release before the first one"
+# omit-large.py warns about a file of at least 1.6 GiB and keeps its layer; at 2 GiB the layer is omitted.
+python3 -I -c 'import json,sys; c=json.load(open(sys.argv[1])); c["layers"][0]["files"][0]["size"]=int(1.7*1024**3); c["layers"][1]["files"][0]["size"]=2*1024**3; json.dump(c, open(sys.argv[2], "w"))' \
+  "$T/layers.json" "$work/large.json"
+python3 "$R/scripts/omit-large.py" "$work/large.json" > "$work/out.txt"
+grep -q '::warning::.*1.70 GiB, close to the 2 GiB limit' "$work/out.txt" || { cat "$work/out.txt"; fail "no warning at 1.7 GiB"; }
+grep -q '::warning::omitted: .*2.00 GiB' "$work/out.txt" || { cat "$work/out.txt"; fail "a 2 GiB layer is not omitted"; }
+echo "ok: previous release, missing layers and large files"
 echo "All theme and catalogue checks passed"

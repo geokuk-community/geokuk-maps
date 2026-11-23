@@ -7,6 +7,9 @@
   compat layers.json               only the catalogue rules: what GeoKuk 6.5.0 (KatalogVrstev) needs and the theme theme/geokuk
   map-assets layers.json tag dir   prints "<release> <asset id> <name>" of every tourist and contours .map in layers.json, with
                                    dir/<tag>.assets.json for this release and dir/<release>.assets.json for older ones
+  previous releases.json tag       prints "<id> <tag>" of the newest published release layers-* older than tag (nothing for the first one)
+  compare layers.json previous.json   fails when a layer id of the previous release is missing, unless mapping/removed-layers.txt
+                                   (or the file in REMOVED_LAYERS) lists it
   other-tags layers.json tag       prints the other releases that layers.json points to (dem and contours kept from an older release)
   verify-other layers.json tag dir     the same checks for the files in those releases, with dir/<release>.assets.json and
                                    dir/releases.json (the release must be published, not a draft)"""
@@ -213,6 +216,25 @@ def main():
                 if a is None:
                     sys.exit('%s: asset %s missing' % (layer['id'], f['url']))
                 print(prefix, a['id'], name)
+    elif cmd == 'previous':
+        tag = sys.argv[3]
+        older = sorted((r['tag_name'], r['id']) for r in load(sys.argv[2]) if not r.get('draft')
+                       and re.fullmatch(r'layers-[0-9]{4}-[0-9]{2}[a-z0-9-]*', r.get('tag_name', '')) and r['tag_name'] < tag)
+        if older:
+            print(older[-1][1], older[-1][0])
+    elif cmd == 'compare':
+        new, old = load(sys.argv[2]), load(sys.argv[3])
+        removed = set()
+        path = os.environ.get('REMOVED_LAYERS') or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'mapping', 'removed-layers.txt')
+        if os.path.exists(path):
+            with open(path, encoding='utf-8') as f:
+                removed = {line.strip() for line in f if line.strip() and not line.startswith('#')}
+        have = {x['id'] for x in new.get('layers', [])}
+        missing = sorted({x['id'] for x in old.get('layers', [])} - have - removed)
+        print('layers: %d in the previous release, %d in this one, %d removed on purpose' % (len(old.get('layers', [])), len(have), len(removed)))
+        if missing:
+            sys.exit('%d layer(s) of the previous release are missing (omitted at 2 GiB, a failed build, or removed: then list them in '
+                     'mapping/removed-layers.txt): %s' % (len(missing), ', '.join(missing[:50])))
     elif cmd == 'other-tags':
         tag = sys.argv[3]
         for t in sorted({r[1] for r in references(load(sys.argv[2])) if r[1] != tag}):
