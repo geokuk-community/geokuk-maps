@@ -85,8 +85,13 @@ def compat(catalog):
         if not isinstance(files, list) or len(files) != 1 or not isinstance(files[0], dict) \
                 or type(files[0].get('size')) is not int or not SHA256.fullmatch(str(files[0].get('sha256'))) \
                 or not all(isinstance(files[0].get(k), str) for k in ('name', 'url', 'date')) \
-                or not all(isinstance(t.get(k), str) and t.get(k) for k in ('name', 'for', 'geokukVersion', 'source')):
-            problems.append('%s: a theme needs name, for, geokukVersion, source and one file with name, url, size, sha256, date' % ident)
+                or not all(isinstance(t.get(k), str) and t.get(k) for k in ('name', 'for', 'source')):
+            problems.append('%s: a theme needs name, for, source and one file with name, url, size, sha256, date' % ident)
+            continue
+        version = t.get('version')
+        if 'version' in t and not ((type(version) is int and version >= 1)
+                                   or (isinstance(version, str) and re.fullmatch(r'[0-9]{4}\.[0-9]{2}\.[0-9]{2}', version))):
+            problems.append('%s: version must be an integer from 1 or a date YYYY.MM.DD, not %r' % (ident, version))
             continue
         found[ident] = files[0]['name']
     for ident, name in THEMES.items():

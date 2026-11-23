@@ -61,7 +61,7 @@ expect_fail 'no render theme' check paws "$work/bad2.zip"
 # Catalogue: the themes are added next to the layers, version stays 1, the layers keep the rules of GeoKuk 6.5.0.
 cp "$T/layers.json" "$work/layers.json"
 expect_fail 'theme/geokuk: theme with the file GeoKuk-tema.zip missing' python3 "$R/scripts/finalize-check.py" compat "$work/layers.json"
-printf '{"geokuk": "v6.5.0", "geokukVersion": "6.5.0", "date": "2026-12-01", "source": "https://github.com/geokuk-community/geokuk/releases/tag/v6.5.0"}\n' \
+printf '{"geokuk": "v6.5.0", "date": "2026-12-01", "source": "https://github.com/geokuk-community/geokuk/releases/tag/v6.5.0"}\n' \
   > "$work/themes/themes.meta.json"
 python3 "$R/scripts/theme-catalog.py" "$work/layers.json" "$work/themes" layers-2026-12
 python3 "$R/scripts/finalize-check.py" compat "$work/layers.json"
@@ -71,9 +71,34 @@ old, new = (json.load(open(p, encoding='utf-8')) for p in sys.argv[1:3])
 assert new['version'] == 1 and new['layers'] == old['layers'] and new['sources'] == old['sources'], 'layers changed'
 assert list(new)[-1] == 'themes' and [t['id'] for t in new['themes']] == ['theme/geokuk'], new.get('themes')
 g = new['themes'][0]
-assert g['files'][0]['url'] == 'layers-2026-12/GeoKuk-tema.zip' and g['layers'] == ['tourist', 'contours'] and g['geokukVersion'] == '6.5.0'
+assert g['files'][0]['url'] == 'layers-2026-12/GeoKuk-tema.zip' and g['layers'] == ['tourist', 'contours'] and g['version'] == 3, g
+assert 'geokukVersion' not in g and 'geokuk' not in g and g['source'].endswith('/releases/tag/v6.5.0'), g
 print('ok: theme/geokuk added (GeoKuk-tema-PAWS.zip not in the catalogue), layers unchanged')
 PY
+# The version comes from tema.json in the ZIP: without tema.json (6.5.0-beta.36) no version and a warning; an invalid one is an error;
+# compat refuses an invalid version in the catalogue.
+cp -r "$T/geokuk" "$work/old"
+rm "$work/old/tema.json"
+mkdir -p "$work/oldthemes"
+zipdir "$work/old" "$work/oldthemes/GeoKuk-tema.zip"
+cp "$work/themes/themes.meta.json" "$work/oldthemes/"
+cp "$T/layers.json" "$work/old.json"
+python3 "$R/scripts/theme-catalog.py" "$work/old.json" "$work/oldthemes" layers-2026-12 | tee "$work/out.txt"
+grep -q '::warning::GeoKuk-tema.zip has no tema.json' "$work/out.txt" || fail "no warning for a ZIP without tema.json"
+python3 -I -c 'import json,sys; t=json.load(open(sys.argv[1]))["themes"][0]; assert "version" not in t, t' "$work/old.json"
+python3 "$R/scripts/finalize-check.py" compat "$work/old.json"
+for bad in '{"version": 0}' '{"version": "1.2"}' '{"for": "geokuk-maps"}' 'version 3'; do
+  printf '%s\n' "$bad" > "$work/old/tema.json"
+  zipdir "$work/old" "$work/oldthemes/GeoKuk-tema.zip"
+  expect_fail 'tema.json' python3 "$R/scripts/theme-catalog.py" "$work/old.json" "$work/oldthemes" layers-2026-12
+done
+printf '{"version": "2026.12.01", "for": "geokuk-maps"}\n' > "$work/old/tema.json"
+zipdir "$work/old" "$work/oldthemes/GeoKuk-tema.zip"
+python3 "$R/scripts/theme-catalog.py" "$work/old.json" "$work/oldthemes" layers-2026-12 > /dev/null
+python3 -I -c 'import json,sys; t=json.load(open(sys.argv[1]))["themes"][0]; assert t["version"] == "2026.12.01", t' "$work/old.json"
+python3 -I -c 'import json,sys; c=json.load(open(sys.argv[1])); c["themes"][0]["version"]="v3"; json.dump(c, open(sys.argv[2], "w"))' "$work/old.json" "$work/bad.json"
+expect_fail "theme/geokuk: version must be an integer from 1 or a date YYYY.MM.DD, not 'v3'" python3 "$R/scripts/finalize-check.py" compat "$work/bad.json"
+echo "ok: version of the theme from tema.json"
 # merge-catalog keeps the themes of the release when a region is merged in.
 python3 -I - "$work/layers.json" "$work/frag.json" <<'PY'
 import json, sys
@@ -138,7 +163,7 @@ cp "$T/layers.json" "$work/stub/assets/layers.json"
 echo licence > "$work/stub/assets/LICENSES.txt"
 cp "$work/themes/GeoKuk-tema.zip" "$work/themes/GeoKuk-tema-PAWS.zip" "$work/upload/themes/"
 (cd "$work/upload/themes" && for z in GeoKuk-tema.zip GeoKuk-tema-PAWS.zip; do sha256sum "$z" > "$z.sha256"; done)
-printf '{"geokuk": "v6.5.0-beta.36", "geokukVersion": "6.5.0-beta.36", "date": "2026-11-23", "source": "https://github.com/geokuk-community/geokuk/releases/tag/v6.5.0-beta.36"}\n' \
+printf '{"geokuk": "v6.5.0-beta.36", "date": "2026-11-23", "source": "https://github.com/geokuk-community/geokuk/releases/tag/v6.5.0-beta.36"}\n' \
   > "$work/upload/themes/themes.meta.json"
 PATH="$T/stub:$PATH" STATE="$work/stub" GH_TOKEN=x GITHUB_REPOSITORY=o/r MODE=draft TAG=layers-2026-11 DIR="$work/upload" \
   bash "$R/scripts/publish.sh"

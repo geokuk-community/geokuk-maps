@@ -93,7 +93,7 @@ stops the release and is listed). A rule for a tag of the layer family (`fmrel*`
 such as `fmrelbicyclebrown` (`addfmreltags.pl` knows the route colours red, blue, green, yellow, black and white and writes any other
 as `…default`), draws nothing and is only a warning. Of `GeoKuk-tema-PAWS.zip` only the loading is checked
 (the theme XML parses, every `file:` symbol is in the ZIP). `layers.json` lists `GeoKuk-tema.zip` (id `theme/geokuk`) under the
-top-level key `themes`, next to `layers` (file, size, SHA-256, date, GeoKuk version, the maps the theme is for); `GeoKuk-tema-PAWS.zip`
+top-level key `themes`, next to `layers` (file, size, SHA-256, date, the maps the theme is for, `version` of the theme from `tema.json` in the ZIP — `{"version": N, "for": …}`, N = 1, 2, 3… or a date YYYY.MM.DD; left out with a warning when the ZIP has no `tema.json`, as up to GeoKuk 6.5.0-beta.36 — and `source`, the link to the GeoKuk release); `GeoKuk-tema-PAWS.zip`
 is a release asset only and not in the catalogue. `version` stays 1, and GeoKuk 6.5.0 reads only `version`, `sources` and `layers`.
 
 ## Workflows and data sources
@@ -173,5 +173,5 @@ Každé vydání obsahuje i témata GeoKuku z vydání geokuk-community/geokuk: 
 a `GeoKuk-tema-PAWS.zip` k mapám osm.paws.cz, vždy na adrese
 `https://github.com/geokuk-community/geokuk-maps/releases/latest/download/<soubor>`. Workflow před vydáním ověří kontrolní součet
 a attestation obou ZIPů a to, že každá značka vrstev, kterou téma GeoKuk kreslí, ve vrstvách vydání opravdu je. V katalogu
-`layers.json` je jen `GeoKuk-tema.zip`. Dokud stabilní vydání GeoKuku obě témata nemá, zadává se vstup `geokuk` tagem
+`layers.json` je jen `GeoKuk-tema.zip`, s verzí tématu ze souboru `tema.json` v ZIPu. Dokud stabilní vydání GeoKuku obě témata nemá, zadává se vstup `geokuk` tagem
 (např. `v6.5.0-beta.36`).

@@ -49,6 +49,7 @@ done
 python3 -I - "$DIR/themes.meta.json" "$tag" "$published" "$url" <<'PY'
 import json, sys
 out, tag, published, url = sys.argv[1:5]
-json.dump({'geokuk': tag, 'geokukVersion': tag[1:] if tag[:1] == 'v' else tag, 'date': published, 'source': url},
+# geokuk (the tag) is only for the log; the catalogue takes date and source, and the version of the theme from tema.json in the ZIP.
+json.dump({'geokuk': tag, 'date': published, 'source': url},
           open(out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 PY
