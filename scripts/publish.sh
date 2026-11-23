@@ -23,6 +23,10 @@ TAG=${TAG:-layers-$(date -u +%Y-%m)}
 [ -z "${GITHUB_OUTPUT:-}" ] || echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 api() { gh api "$@"; }
 ID=$(api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate --jq ".[]|select(.tag_name==\"$TAG\")|.id" | head -1)
+# Another draft release layers-* does not change this one, but finalize without TAG would refuse to choose; name it.
+api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate \
+  --jq ".[]|select(.draft and (.tag_name|startswith(\"layers-\")) and .tag_name != \"$TAG\")|.tag_name" \
+  | while read -r other; do echo "::warning::Another draft release exists: $other (this run writes $TAG)"; done
 if [ -z "$ID" ] && [ -z "$regions" ]; then
   echo "Release $TAG does not exist; themes are only added to an existing draft release" >&2
   exit 1

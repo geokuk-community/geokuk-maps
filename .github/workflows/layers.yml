@@ -59,8 +59,10 @@ on:
 permissions:
   contents: read
 
+# A run that writes or checks a release (publish other than none) waits for another one with the same tag (input tag; an empty tag
+# is the current month), so that two runs do not build into the same draft at the same time; other runs do not wait.
 concurrency:
-  group: layers-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  group: ${{ github.event_name == 'pull_request' && format('layers-{0}', github.ref) || (inputs.publish != '' && inputs.publish != 'none') && format('layers-build-{0}', inputs.tag || 'current-month') || format('layers-{0}', github.run_id) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -146,6 +148,25 @@ jobs:
           slices=$(python3 scripts/osm-blocks.py slices "${keys[@]}")
           echo "Planet $planet, streams $streams, slices $slices"
           { echo "osm=aws"; echo "planet=$planet"; echo "streams=$streams"; echo "slices=$slices"; } >> "$GITHUB_OUTPUT"
+      # The GeoKuk themes are checked here, before the hours of building, and handed to the job publish as the artifact themes, so that
+      # a GeoKuk release without them (input geokuk empty = the latest release) stops the run at once with a clear error.
+      - name: Download and check the GeoKuk themes
+        if: ${{ github.event_name == 'workflow_dispatch' && contains(fromJSON('["draft", "release"]'), inputs.publish) }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEOKUK: ${{ inputs.geokuk }}
+          DIR: ${{ runner.temp }}/themes
+        run: |
+          scripts/theme-fetch.sh
+          python3 scripts/theme-check.py geokuk "$DIR/GeoKuk-tema.zip"
+          python3 scripts/theme-check.py paws "$DIR/GeoKuk-tema-PAWS.zip"
+      - if: ${{ github.event_name == 'workflow_dispatch' && contains(fromJSON('["draft", "release"]'), inputs.publish) }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: themes
+          path: ${{ runner.temp }}/themes
+          if-no-files-found: error
+          retention-days: 14
 
   planet:
     needs: plan
@@ -574,17 +595,13 @@ jobs:
           RUN: ${{ inputs.from_run || github.run_id }}
           DIR: ${{ github.workspace }}/upload
         run: scripts/download-artifacts.sh
-      # The themes are checked against the tag mapping here; finalize.sh (check-draft, check, finalize) checks them against the headers
-      # of every map of the release.
-      - name: Download and check the GeoKuk themes
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GEOKUK: ${{ inputs.geokuk }}
-          DIR: ${{ github.workspace }}/upload/themes
-        run: |
-          scripts/theme-fetch.sh
-          python3 scripts/theme-check.py geokuk "$DIR/GeoKuk-tema.zip"
-          python3 scripts/theme-check.py paws "$DIR/GeoKuk-tema-PAWS.zip"
+      # The themes that the job plan of this run downloaded and checked against the tag mapping (artifact themes); finalize.sh
+      # (check-draft, check, finalize) checks them against the headers of every map of the release.
+      - name: Take the GeoKuk themes checked by the job plan
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: themes
+          path: ${{ github.workspace }}/upload/themes
       - name: Release
         id: release
         env:
